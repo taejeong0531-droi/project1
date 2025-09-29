@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF6E3"
+    android:gravity="center"
+    android:padding="24dp">
+
+    <!-- 상단 이모티콘 이미지 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="24dp"
+        android:gravity="center">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/egg"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="Smile cloud" />
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/egg"
+            android:contentDescription="Egg face" />
+    </LinearLayout>
+
+    <!-- 질문 텍스트 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textQuestion"
+        android:text="오늘 하루 중 가장 기억에 남는 일"
+        android:textSize="20sp"
+        android:textColor="#814C05"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="36dp" />
+
+    <!-- 감정 버튼: 좋은 일 -->
+    <Button
+        android:id="@+id/btnGood"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="좋은 일"
+        android:backgroundTint="#FFD966"
+        android:textColor="#814C05"
+        android:layout_marginBottom="16dp"
+        android:textStyle="bold" />
+
+    <!-- 감정 버튼: 화나는 일 -->
+    <Button
+        android:id="@+id/btnAngry"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="화나는 일"
+        android:backgroundTint="#E08E54"
+        android:textColor="#FFF6E3"
+        android:layout_marginBottom="16dp"
+        android:textStyle="bold" />
+
+    <!-- 감정 버튼: 아무 일도 없음 -->
+    <Button
+        android:id="@+id/btnNothing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="아무 일도 없음"
+        android:backgroundTint="#EADCC1"
+        android:textColor="#814C05"
+        android:textStyle="bold" />
+</LinearLayout>

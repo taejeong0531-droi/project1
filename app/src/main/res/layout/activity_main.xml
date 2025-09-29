@@ -1,0 +1,111 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF6E3"
+    android:padding="30dp">
+
+    <!-- 계란 이미지 -->
+    <ImageView
+        android:id="@+id/imageEggRice"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="48dp"
+        android:contentDescription="계란밥 이미지"
+        android:src="@drawable/egg" />
+
+    <!-- 기분 따라밥 -->
+    <TextView
+        android:id="@+id/textTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imageEggRice"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="60dp"
+        android:text="기분따라밥"
+        android:textColor="#C67C2F"
+        android:textSize="32sp"
+        android:textStyle="bold" />
+    <!-- 아아디 입력-->
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:layout_below="@id/textTitle"
+
+        android:background="#FEDC7E"
+        android:hint="아이디"
+        android:id="@+id/textid"
+        android:padding="12dp"
+        tools:ignore="DuplicateClickableBoundsCheck" />
+
+    <!-- 비밀번호 입력 -->
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textid"
+        android:id="@+id/textpassword"
+        android:hint="비밀번호"
+        android:inputType="textPassword"
+        android:background="#FEDC7E"
+        android:padding="12dp"
+        android:layout_marginBottom="24dp" />
+
+
+    <!-- 로그인하기 -->
+    <Button
+        android:id="@+id/menuBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textpassword"
+        android:text="로그인"
+        android:backgroundTint="#FFD966"
+        android:textColor="#814C05"
+        android:textStyle="bold" />
+
+    <!-- 로그인 / 회원가입 / 비밀번호찾기 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="84dp"
+        android:layout_below="@id/menuBtn"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="15dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/signupBtn"
+            android:layout_width="161dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:text="회원가입"
+            android:textColor="#000000"
+            android:textSize="14sp" />
+
+
+        <Button
+            android:id="@+id/passwordfindid"
+            android:layout_width="163dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:text="아이디찾기"
+            android:textColor="#000000"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/passwordfindBtn"
+            android:layout_width="192dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="비밀번호찾기"
+            android:textColor="#000000"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+</RelativeLayout>
+
+
