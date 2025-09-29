@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 감정 및 시간 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textEmotion"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="감정: happy"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#814C05" />
+
+            <TextView
+                android:id="@+id/textTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="14:30"
+                android:textSize="14sp"
+                android:textColor="#999999" />
+        </LinearLayout>
+
+        <!-- 점수 -->
+        <TextView
+            android:id="@+id/textScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="점수: 90%"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="4dp"
+            android:visibility="gone" />
+
+        <!-- 추천 음식 목록 -->
+        <TextView
+            android:id="@+id/textRecommended"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="추천: 3개"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
+
+        <!-- 선택한 음식 -->
+        <TextView
+            android:id="@+id/textSelected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="선택: 상큼 과일 샐러드"
+            android:textSize="16sp"
+            android:textColor="#6200EE"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     id("org.jetbrains.kotlin.android") version "1.9.0"
+    id("com.google.devtools.ksp") version "1.9.0-1.0.13"
 }
 
 
@@ -31,6 +32,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        isCoreLibraryDesugaringEnabled = true
     }
     
     kotlinOptions {
@@ -52,6 +54,15 @@ dependencies {
     
     // Material Design
     implementation("com.google.android.material:material:1.11.0")
+    
+    // Room
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    implementation("androidx.room:room-ktx:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
+    
+    // Java 8+ API desugaring support
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

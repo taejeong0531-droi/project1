@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFF6E3"
     android:gravity="center"
-    android:padding="24dp">
+    android:padding="24dp"
+    tools:context=".EmotionActivity"
+    tools:theme="@style/Theme.MyApplication">
 
     <!-- 상단 이모티콘 이미지 -->
     <LinearLayout
@@ -42,35 +46,102 @@
         android:gravity="center"
         android:layout_marginBottom="36dp" />
 
-    <!-- 감정 버튼: 좋은 일 -->
-    <Button
+    <!-- 결과 타이틀 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textResultTitle"
+        android:text="님을 위한 음식이에요 😊"
+        android:textSize="20sp"
+        android:textColor="#814C05"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="36dp"
+        android:visibility="gone" />
+
+    <!-- 감정 선택 버튼 3개 (모크 스타일) -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnGood"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
         android:text="좋은 일"
-        android:backgroundTint="#FFD966"
+        android:textStyle="bold"
+        android:textAllCaps="false"
         android:textColor="#814C05"
-        android:layout_marginBottom="16dp"
-        android:textStyle="bold" />
+        android:insetTop="10dp"
+        android:insetBottom="10dp"
+        app:cornerRadius="20dp"
+        android:backgroundTint="#FFD966"/>
 
-    <!-- 감정 버튼: 화나는 일 -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAngry"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
         android:text="화나는 일"
-        android:backgroundTint="#E08E54"
-        android:textColor="#FFF6E3"
-        android:layout_marginBottom="16dp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:insetTop="10dp"
+        android:insetBottom="10dp"
+        app:cornerRadius="20dp"
+        android:backgroundTint="#E08E54"/>
 
-    <!-- 감정 버튼: 아무 일도 없음 -->
-    <Button
-        android:id="@+id/btnNothing"
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
         android:text="아무 일도 없음"
-        android:backgroundTint="#EADCC1"
+        android:textStyle="bold"
+        android:textAllCaps="false"
         android:textColor="#814C05"
-        android:textStyle="bold" />
+        android:insetTop="10dp"
+        android:insetBottom="10dp"
+        app:cornerRadius="20dp"
+        android:backgroundTint="#EADCC1"/>
+
+    <!-- 로딩 표시 -->
+    <ProgressBar
+        android:id="@+id/progress"
+        style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:visibility="gone" />
+
+    <!-- 감정 결과 텍스트 -->
+    <TextView
+        android:id="@+id/textEmotionResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textColor="#814C05"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <!-- 추천 음식 리스트 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerFoods"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_weight="1" />
+
+    <!-- 다른 음식 보기 버튼 (결과 화면 하단) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnMore"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="다른 음식 보기"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="#5D4037"
+        app:cornerRadius="16dp"
+        android:backgroundTint="#FFD700"
+        android:visibility="gone" />
 </LinearLayout>

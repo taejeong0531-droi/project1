@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFF9E6"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    tools:context=".SignUpActivity"
+    tools:theme="@style/Theme.MyApplication">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -36,13 +39,11 @@
 
         <!-- 아이디 입력 -->
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/LoginInputStyle"
+            style="@style/MyTextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:hint="아이디"
-            app:boxStrokeColor="@color/gold"
-            app:hintTextColor="@color/light_brown_text">
+            android:hint="아이디">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editSignupId"
@@ -56,13 +57,12 @@
 
         <!-- 비밀번호 입력 -->
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/LoginInputStyle"
+            style="@style/MyTextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:hint="비밀번호"
-            app:boxStrokeColor="@color/gold"
-            app:hintTextColor="@color/light_brown_text">
+            app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editSignupPassword"
@@ -76,13 +76,12 @@
 
         <!-- 비밀번호 확인 -->
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/LoginInputStyle"
+            style="@style/MyTextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             android:hint="비밀번호 확인"
-            app:boxStrokeColor="@color/gold"
-            app:hintTextColor="@color/light_brown_text">
+            app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editConfirmPassword"
@@ -96,13 +95,11 @@
 
         <!-- 이메일 입력 -->
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/LoginInputStyle"
+            style="@style/MyTextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:hint="이메일"
-            app:boxStrokeColor="@color/gold"
-            app:hintTextColor="@color/light_brown_text">
+            android:hint="이메일">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editEmail"
@@ -116,13 +113,11 @@
 
         <!-- 닉네임 입력 -->
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/LoginInputStyle"
+            style="@style/MyTextInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
-            android:hint="닉네임"
-            app:boxStrokeColor="@color/gold"
-            app:hintTextColor="@color/light_brown_text">
+            android:hint="닉네임">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editNickname"

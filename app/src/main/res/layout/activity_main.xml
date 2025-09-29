@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout 
+<androidx.coordinatorlayout.widget.CoordinatorLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFF9E6">
+    android:background="#FFF9E6"
+    android:fitsSystemWindows="true">
 
     <!-- 로그인 화면 -->
     <LinearLayout
@@ -14,8 +15,7 @@
         android:orientation="vertical"
         android:gravity="center"
         android:padding="32dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
-        app:layout_constraintTop_toTopOf="parent">
+        android:visibility="visible">
 
         <!-- 앱 로고 -->
         <ImageView
@@ -97,10 +97,12 @@
                 android:id="@+id/textSignUp"
                 style="?android:attr/textAppearanceSmall"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="8dp"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:minWidth="72dp"
+                android:paddingHorizontal="16dp"
                 android:text="회원가입"
-                android:textColor="#8D6E63"
+                android:textColor="#5D4037"
                 android:textSize="14sp"
                 android:clickable="true"
                 android:focusable="true"
@@ -116,10 +118,12 @@
                 android:id="@+id/textFindPassword"
                 style="?android:attr/textAppearanceSmall"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="8dp"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:minWidth="96dp"
+                android:paddingHorizontal="16dp"
                 android:text="비밀번호찾기"
-                android:textColor="#8D6E63"
+                android:textColor="#5D4037"
                 android:textSize="14sp"
                 android:clickable="true"
                 android:focusable="true"
@@ -127,63 +131,32 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 로그인 후 메인 화면 -->
+    <!-- 메인 컨텐츠 레이아웃 -->
     <LinearLayout
         android:id="@+id/mainContentLayout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone"
-        android:padding="32dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
-        app:layout_constraintTop_toTopOf="parent">
+        android:visibility="gone">
 
-        <!-- 앱 로고 -->
-        <ImageView
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:layout_marginBottom="32dp"
-            android:contentDescription="앱 로고"
-            android:src="@drawable/ic_launcher_foreground"
-            android:scaleType="fitCenter" />
+        <!-- 프래그먼트 컨테이너 -->
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-        <!-- 앱 제목 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="48dp"
-            android:text="기분따라밥"
-            android:textColor="#8B5A2B"
-            android:textSize="28sp"
-            android:textStyle="bold" />
-
-        <!-- 음식 추천 버튼 -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnRecommendFood"
+        <!-- 하단 네비게이션 바 -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_navigation"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:backgroundTint="#FFD700"
-            android:paddingVertical="16dp"
-            android:text="음식추천받기"
-            android:textColor="#5D4037"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            app:cornerRadius="12dp"
-            app:elevation="4dp"/>
+            android:background="@android:color/white"
+            app:menu="@menu/bottom_nav_menu"
+            app:itemIconTint="@drawable/nav_item_color_state"
+            app:itemTextColor="@drawable/nav_item_color_state"
+            android:visibility="gone" />
     </LinearLayout>
 
-    <!-- 하단 네비게이션 바 -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        app:itemIconTint="@drawable/nav_item_color_state"
-        app:itemTextColor="@drawable/nav_item_color_state"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:menu="@menu/bottom_nav_menu"
-        android:visibility="gone"/>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
 

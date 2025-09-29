@@ -33,6 +33,12 @@
             android:name=".EmotionActivity"
             android:exported="false"
             android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+            
+        <!-- 계정 찾기 액티비티 -->
+        <activity
+            android:name=".auth.FindAccountActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
 
     </application>
 

@@ -18,6 +18,21 @@
         <item name="android:textStyle">bold</item>
     </style>
     
+    <!-- MyTextInputLayout Style -->
+    <style name="MyTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeColor">#8B5A2B</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="hintTextColor">#8B5A2B</item>
+        <item name="hintEnabled">true</item>
+        <item name="hintAnimationEnabled">true</item>
+        <item name="android:textColorHint">#8B5A2B</item>
+        <item name="boxBackgroundColor">@android:color/white</item>
+    </style>
+    
     <!-- Shape Appearances -->
     <style name="ShapeAppearance.MyApp.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
         <item name="cornerFamily">rounded</item>
