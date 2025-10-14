@@ -24,8 +24,8 @@
             android:layout_height="120dp"
             android:layout_marginBottom="24dp"
             android:contentDescription="앱 로고"
-            android:src="@drawable/ic_launcher_foreground"
-            android:scaleType="fitCenter" />
+            android:src="@drawable/egg"
+            android:scaleType="fitCenter"/>
 
         <!-- 앱 제목 -->
         <TextView
