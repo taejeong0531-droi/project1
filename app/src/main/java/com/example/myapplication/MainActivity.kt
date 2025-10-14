@@ -13,6 +13,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.example.myapplication.auth.FindAccountActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -66,22 +69,11 @@ class MainActivity : AppCompatActivity() {
 
         // 비밀번호 찾기 텍스트 클릭 이벤트
         findViewById<TextView>(R.id.textFindPassword).setOnClickListener {
-            // FindAccountActivity로 이동
             val intent = Intent(this, FindAccountActivity::class.java)
             startActivity(intent)
         }
 
-        // 회원가입 텍스트 클릭 이벤트
         findViewById<TextView>(R.id.textSignUp).setOnClickListener {
-            // SignUpActivity로 이동
-            val intent = Intent(this, SignUpActivity::class.java)
-            startActivity(intent)
-        }
-
-        // 음식 추천 버튼 클릭은 HomeFragment에서 처리합니다.
-
-        // 회원가입 버튼 클릭 이벤트
-        findViewById<View>(R.id.textSignUp).setOnClickListener {
             val intent = Intent(this, SignUpActivity::class.java)
             startActivity(intent)
         }
@@ -99,12 +91,35 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // 여기에 실제 로그인 로직 구현 (임시로 성공 처리)
-        viewModel.performLogin()
-        
-        // 입력 필드 초기화
-        editTextId.text?.clear()
-        editTextPassword.text?.clear()
+        Firebase.auth.signInWithEmailAndPassword(id, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    viewModel.performLogin()
+                    editTextId.text?.clear()
+                    editTextPassword.text?.clear()
+                } else {
+                    showLoginError(task.exception)
+                }
+            }
+    }
+
+    private fun showLoginError(e: Exception?) {
+        val message = when (e) {
+            is FirebaseAuthException -> {
+                when (e.errorCode) {
+                    "ERROR_INVALID_EMAIL" -> "유효하지 않은 이메일 형식입니다."
+                    "ERROR_USER_NOT_FOUND" -> "가입되지 않은 이메일입니다. 회원가입을 진행해주세요."
+                    "ERROR_WRONG_PASSWORD" -> "비밀번호가 올바르지 않습니다."
+                    "ERROR_USER_DISABLED" -> "사용이 중지된 계정입니다."
+                    "ERROR_TOO_MANY_REQUESTS" -> "시도가 너무 많습니다. 잠시 후 다시 시도해주세요."
+                    "ERROR_NETWORK_REQUEST_FAILED" -> "네트워크 오류가 발생했습니다. 연결을 확인해주세요."
+                    "ERROR_OPERATION_NOT_ALLOWED" -> "이 인증 방식이 비활성화되어 있습니다."
+                    else -> "로그인 실패: ${e.localizedMessage ?: e.errorCode}"
+                }
+            }
+            else -> e?.localizedMessage ?: "로그인 중 오류가 발생했습니다."
+        }
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun loginSuccess() {
@@ -183,5 +198,15 @@ class MainActivity : AppCompatActivity() {
         
         // 기본 선택 항목 설정
         bottomNav.selectedItemId = R.id.navigation_home
+    }
+
+    // 프로필에서 로그아웃 후 로그인 화면으로 돌아가기 위해 호출
+    fun showLoginScreen() {
+        loginLayout.visibility = View.VISIBLE
+        mainContentLayout.visibility = View.GONE
+        bottomNav.visibility = View.GONE
+        // 입력 필드 초기화
+        editTextId.text?.clear()
+        editTextPassword.text?.clear()
     }
 }

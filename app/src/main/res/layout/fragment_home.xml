@@ -9,15 +9,16 @@
     <!-- 앱 로고/아이콘 -->
     <ImageView
         android:id="@+id/imageHomeLogo"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:src="@mipmap/ic_launcher"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/egg"
         android:contentDescription="앱 로고"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/textHomeTitle"
-        app:layout_constraintVertical_bias="0.3" />
+        app:layout_constraintVertical_chainStyle="packed"
+        android:layout_marginBottom="24dp" />
 
     <!-- 홈 타이틀 -->
     <TextView
@@ -35,7 +36,7 @@
         app:layout_constraintTop_toBottomOf="@+id/imageHomeLogo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
+        app:layout_constraintBottom_toTopOf="@+id/textHomeSubtitle" />
 
     <!-- 서브 타이틀 -->
     <TextView
@@ -54,6 +55,7 @@
         app:layout_constraintTop_toBottomOf="@+id/textHomeTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btnRecommendFood"
         android:layout_marginTop="8dp"
         android:layout_marginStart="32dp"
         android:layout_marginEnd="32dp" />

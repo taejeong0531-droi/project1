@@ -11,6 +11,32 @@
     tools:context=".EmotionActivity"
     tools:theme="@style/Theme.MyApplication">
 
+    <!-- 뒤로가기 버튼 -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="start"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="뒤로 가기"
+        android:padding="12dp"
+        android:src="@drawable/ic_arrow_back"
+        android:tint="#8B5A2B"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- 질문 카운터 -->
+    <TextView
+        android:id="@+id/textQuestionCounter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="1/5"
+        android:textColor="#8B5A2B"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="24dp"/>
+
     <!-- 상단 이모티콘 이미지 -->
     <LinearLayout
         android:layout_width="wrap_content"
@@ -35,7 +61,7 @@
 
     <!-- 질문 텍스트 -->
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/textQuestion"
         android:text="오늘 하루 중 가장 기억에 남는 일"

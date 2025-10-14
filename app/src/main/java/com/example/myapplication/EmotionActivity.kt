@@ -1,34 +1,39 @@
 package com.example.myapplication
+  
+  import android.os.Bundle
+  import android.view.View
+  import android.widget.Button
+  import android.widget.ProgressBar
+  import android.widget.TextView
+  import androidx.activity.viewModels
+  import androidx.appcompat.app.AppCompatActivity
+  import androidx.lifecycle.lifecycleScope
+  import androidx.recyclerview.widget.LinearLayoutManager
+  import androidx.recyclerview.widget.RecyclerView
+  import com.example.myapplication.data.AppDatabase
+  import com.example.myapplication.data.EmotionEntry
+  import com.example.myapplication.data.EmotionRepository
+  import com.example.myapplication.data.FoodSelection
+  import com.example.myapplication.ui.EmotionViewModel
+  import com.example.myapplication.util.UserIdProvider
+  import kotlinx.coroutines.launch
+  import java.time.LocalDate
 
-import android.os.Bundle
-import android.view.View
-import android.widget.Button
-import android.widget.ProgressBar
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.myapplication.data.AppDatabase
-import com.example.myapplication.data.EmotionEntry
-import com.example.myapplication.data.EmotionRepository
-import com.example.myapplication.data.FoodSelection
-import kotlinx.coroutines.launch
-import java.time.LocalDate
-
-class EmotionActivity : AppCompatActivity() {
-    private lateinit var btnGood: Button
-    private lateinit var btnAngry: Button
-    private lateinit var btnNone: Button
-    private lateinit var btnMore: Button
-    private lateinit var progress: ProgressBar
+  class EmotionActivity : AppCompatActivity() {
+      private val emotionViewModel: EmotionViewModel by viewModels()
+      private lateinit var userId: String
+      private lateinit var btnGood: Button
+      private lateinit var btnAngry: Button
+      private lateinit var btnNone: Button
+      private lateinit var btnMore: Button
+      private lateinit var progress: ProgressBar
     private lateinit var textQuestion: TextView
     private lateinit var textResultTitle: TextView
     private lateinit var textEmotionResult: TextView
     private lateinit var recyclerFoods: RecyclerView
     private lateinit var adapter: EmotionAdapter
     private lateinit var repository: EmotionRepository
-
+    
     // 5문항 진행 상태
     private val questions = listOf(
         "오늘 하루 중 가장 기억에 남는 일",
@@ -48,6 +53,12 @@ class EmotionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_emotion)
 
+        // Per-installation userId (no Auth)
+        userId = UserIdProvider.getOrCreate(this)
+
+        // Start Firestore real-time observation (optional UI usage)
+        emotionViewModel.startObserving(userId)
+
         // View refs
         btnGood = findViewById(R.id.btnGood)
         btnAngry = findViewById(R.id.btnAngry)
@@ -63,8 +74,8 @@ class EmotionActivity : AppCompatActivity() {
         adapter = EmotionAdapter(onClickMore = { food -> onFoodSelected(food) })
         recyclerFoods.layoutManager = LinearLayoutManager(this)
         recyclerFoods.adapter = adapter
-        
-        // Repository 초기화
+
+        // Repository 초기화 (로컬 Room)
         val database = AppDatabase.getDatabase(this)
         repository = EmotionRepository(database.emotionDao())
 
@@ -77,6 +88,10 @@ class EmotionActivity : AppCompatActivity() {
         btnNone.setOnClickListener { onAnswer("neutral") }
         btnMore.setOnClickListener { showOtherFoods() }
     }
+    private var lastEmotionLabel: String? = null
+    private var lastScore: Float = 0.9f
+    private var lastRecommendedFoods: List<FoodItem> = emptyList()
+    private var altIndex: Int = 0
 
     private fun setLoading(loading: Boolean) {
         progress.visibility = if (loading) View.VISIBLE else View.GONE
@@ -85,35 +100,33 @@ class EmotionActivity : AppCompatActivity() {
         btnNone.isEnabled = !loading
     }
 
-    private var lastEmotionLabel: String? = null
-    private var lastScore: Float = 0.9f
-    private var lastRecommendedFoods: List<FoodItem> = emptyList()
-    private var altIndex: Int = 0
-
     private fun analyzeWithEmotion(label: String) {
-        setLoading(true)
+      setLoading(true)
 
-        lastEmotionLabel = label
-        altIndex = 0
-        val emotionLabel = when (label) {
-            "happy" -> "happy"
-            "angry" -> "angry"
-            "none", "neutral" -> "neutral"
-            else -> "neutral"
-        }
-        val foods = getFoodsFor(emotionLabel, altIndex)
-        lastRecommendedFoods = foods
-        lastScore = 0.9f
+      lastEmotionLabel = label
+      altIndex = 0
+      val emotionLabel = when (label) {
+        "happy" -> "happy"
+        "angry" -> "angry"
+        "none", "neutral" -> "neutral"
+        else -> "neutral"
+      }
+      val foods = getFoodsFor(emotionLabel, altIndex)
+      lastRecommendedFoods = foods
+      lastScore = 0.9f
 
-        // 질문 숨기고 결과 타이틀 표시
-        textQuestion.visibility = View.GONE
-        textResultTitle.visibility = View.VISIBLE
+      // Save to Firestore for real-time log
+      lifecycleScope.launch {
+          val scoreInt = (lastScore * 100).toInt()
+          emotionViewModel.addEmotion(userId, emotionLabel, note = "", score = scoreInt)
+      }
+
+      // 질문 숨기고 결과 타이틀 표시
+      textQuestion.visibility = View.GONE
+      textResultTitle.visibility = View.VISIBLE
 
         textEmotionResult.text = "감정: $emotionLabel (${(lastScore * 100).toInt()}%)"
         textEmotionResult.visibility = View.VISIBLE
-        adapter.submitList(foods)
-        btnMore.visibility = View.VISIBLE
-
         setLoading(false)
     }
 

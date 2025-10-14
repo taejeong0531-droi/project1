@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "110248123713",
+    "project_id": "taejeongdb",
+    "storage_bucket": "taejeongdb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:110248123713:android:9fc81d968a0023f77015c0",
+        "android_client_info": {
+          "package_name": "com.example.myapplication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCkibf9dSHHbLWcwnB76wvzuKzMYVA59H0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
