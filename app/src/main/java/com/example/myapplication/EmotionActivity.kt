@@ -16,7 +16,11 @@ package com.example.myapplication
   import com.example.myapplication.data.FoodSelection
   import com.example.myapplication.ui.EmotionViewModel
   import com.example.myapplication.util.UserIdProvider
+  import com.example.myapplication.network.ApiClient
+  import com.example.myapplication.network.model.RecommendRequest
+  import kotlinx.coroutines.Dispatchers
   import kotlinx.coroutines.launch
+  import kotlinx.coroutines.withContext
   import java.time.LocalDate
 
   class EmotionActivity : AppCompatActivity() {
@@ -111,23 +115,58 @@ package com.example.myapplication
         "none", "neutral" -> "neutral"
         else -> "neutral"
       }
-      val foods = getFoodsFor(emotionLabel, altIndex)
-      lastRecommendedFoods = foods
-      lastScore = 0.9f
 
-      // Save to Firestore for real-time log
+      // Firestore 로그 저장 (비동기)
       lifecycleScope.launch {
-          val scoreInt = (lastScore * 100).toInt()
+          val score = 0.9f
+          lastScore = score
+          val scoreInt = (score * 100).toInt()
           emotionViewModel.addEmotion(userId, emotionLabel, note = "", score = scoreInt)
       }
 
-      // 질문 숨기고 결과 타이틀 표시
-      textQuestion.visibility = View.GONE
-      textResultTitle.visibility = View.VISIBLE
+      // 서버 추천 호출
+      lifecycleScope.launch {
+          val response = withContext(Dispatchers.IO) {
+              try {
+                  ApiClient.api.recommend(
+                      RecommendRequest(
+                          mood = emotionLabel,
+                          preferences = null,
+                          top_k = 5
+                      )
+                  )
+              } catch (e: Exception) {
+                  null
+              }
+          }
 
-        textEmotionResult.text = "감정: $emotionLabel (${(lastScore * 100).toInt()}%)"
-        textEmotionResult.visibility = View.VISIBLE
-        setLoading(false)
+          val foods: List<FoodItem> = if (response != null) {
+              response.items.map { item ->
+                  FoodItem(
+                      id = item.name, // 간단히 이름을 ID로 사용
+                      name = item.name,
+                      imageUrl = null,
+                      calories = item.kcal,
+                      tags = item.tags
+                  )
+              }
+          } else {
+              // 서버 실패 시 로컬 기본 추천으로 폴백
+              getFoodsFor(emotionLabel, altIndex)
+          }
+
+          lastRecommendedFoods = foods
+
+          // 질문 숨기고 결과 타이틀/텍스트 표시
+          textQuestion.visibility = View.GONE
+          textResultTitle.visibility = View.VISIBLE
+          textEmotionResult.text = "감정: $emotionLabel (${(lastScore * 100).toInt()}%)"
+          textEmotionResult.visibility = View.VISIBLE
+
+          // 리스트 표시
+          adapter.submitList(foods)
+          setLoading(false)
+      }
     }
 
     private fun getFoodsFor(label: String, alt: Int): List<FoodItem> {
