@@ -27,7 +27,7 @@
                 android:id="@+id/profileImage"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:src="@mipmap/ic_launcher"
+                android:src="@drawable/egg"
                 android:contentDescription="프로필 이미지" />
 
             <!-- 사용자 이름 -->

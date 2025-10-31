@@ -183,9 +183,8 @@ package com.example.myapplication
           textResultTitle.visibility = View.VISIBLE
           val nickname = getNickname()
           textResultTitle.text = "${nickname}님을 위한 음식이에요 😊"
-          // 퍼센트 제거: 감정 텍스트만 표시
-          textEmotionResult.text = "감정: $emotionLabel"
-          textEmotionResult.visibility = View.VISIBLE
+          // 감정 텍스트 숨김
+          textEmotionResult.visibility = View.GONE
 
           // 리스트 표시
           adapter.submitList(foods)
