@@ -5,6 +5,8 @@ package com.example.myapplication
   import android.widget.Button
   import android.widget.ProgressBar
   import android.widget.TextView
+  import android.widget.ImageButton
+  import android.widget.ImageView
   import androidx.activity.viewModels
   import androidx.appcompat.app.AppCompatActivity
   import androidx.lifecycle.lifecycleScope
@@ -18,22 +20,26 @@ package com.example.myapplication
   import com.example.myapplication.util.UserIdProvider
   import com.example.myapplication.network.ApiClient
   import com.example.myapplication.network.model.RecommendRequest
+  import com.google.firebase.ktx.Firebase
+  import com.google.firebase.auth.ktx.auth
   import kotlinx.coroutines.Dispatchers
   import kotlinx.coroutines.launch
   import kotlinx.coroutines.withContext
   import java.time.LocalDate
-
   class EmotionActivity : AppCompatActivity() {
       private val emotionViewModel: EmotionViewModel by viewModels()
       private lateinit var userId: String
       private lateinit var btnGood: Button
       private lateinit var btnAngry: Button
-      private lateinit var btnNone: Button
-      private lateinit var btnMore: Button
-      private lateinit var progress: ProgressBar
+    private lateinit var btnNone: Button
+    private lateinit var btnMore: Button
+    private lateinit var btnBack: ImageButton
+    private lateinit var progress: ProgressBar
     private lateinit var textQuestion: TextView
+    private lateinit var textQuestionCounter: TextView
     private lateinit var textResultTitle: TextView
     private lateinit var textEmotionResult: TextView
+    private lateinit var imageTopEgg: ImageView
     private lateinit var recyclerFoods: RecyclerView
     private lateinit var adapter: EmotionAdapter
     private lateinit var repository: EmotionRepository
@@ -52,6 +58,7 @@ package com.example.myapplication
         "angry" to 0,
         "neutral" to 0
     )
+    private val answersHistory = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,10 +75,13 @@ package com.example.myapplication
         btnAngry = findViewById(R.id.btnAngry)
         btnNone = findViewById(R.id.btnNone)
         btnMore = findViewById(R.id.btnMore)
+        btnBack = findViewById(R.id.btnBack)
         progress = findViewById(R.id.progress)
         textQuestion = findViewById(R.id.textQuestion)
+        textQuestionCounter = findViewById(R.id.textQuestionCounter)
         textResultTitle = findViewById(R.id.textResultTitle)
         textEmotionResult = findViewById(R.id.textEmotionResult)
+        imageTopEgg = findViewById(R.id.imageTopEgg)
         recyclerFoods = findViewById(R.id.recyclerFoods)
 
         // Recycler setup
@@ -91,6 +101,7 @@ package com.example.myapplication
         btnAngry.setOnClickListener { onAnswer("angry") }
         btnNone.setOnClickListener { onAnswer("neutral") }
         btnMore.setOnClickListener { showOtherFoods() }
+        btnBack.setOnClickListener { goBackOneStep() }
     }
     private var lastEmotionLabel: String? = null
     private var lastScore: Float = 0.9f
@@ -132,7 +143,7 @@ package com.example.myapplication
                       RecommendRequest(
                           mood = emotionLabel,
                           preferences = null,
-                          top_k = 5
+                          top_k = 4
                       )
                   )
               } catch (e: Exception) {
@@ -140,7 +151,7 @@ package com.example.myapplication
               }
           }
 
-          val foods: List<FoodItem> = if (response != null) {
+          var foods: List<FoodItem> = if (response != null) {
               response.items.map { item ->
                   FoodItem(
                       id = item.name, // 간단히 이름을 ID로 사용
@@ -155,16 +166,30 @@ package com.example.myapplication
               getFoodsFor(emotionLabel, altIndex)
           }
 
+          // 갯수 보정: 4개로 맞춤
+          if (foods.size > 4) foods = foods.take(4)
+          if (foods.size < 4) {
+              // 다른 세트에서 채워 넣기
+              val extra = getFoodsFor(emotionLabel, altIndex + 1)
+              foods = (foods + extra).distinctBy { it.id }.take(4)
+          }
+
           lastRecommendedFoods = foods
 
           // 질문 숨기고 결과 타이틀/텍스트 표시
           textQuestion.visibility = View.GONE
+          textQuestionCounter.visibility = View.GONE
+          imageTopEgg.visibility = View.GONE
           textResultTitle.visibility = View.VISIBLE
-          textEmotionResult.text = "감정: $emotionLabel (${(lastScore * 100).toInt()}%)"
+          val nickname = getNickname()
+          textResultTitle.text = "${nickname}님을 위한 음식이에요 😊"
+          // 퍼센트 제거: 감정 텍스트만 표시
+          textEmotionResult.text = "감정: $emotionLabel"
           textEmotionResult.visibility = View.VISIBLE
 
           // 리스트 표시
           adapter.submitList(foods)
+          btnMore.visibility = View.VISIBLE
           setLoading(false)
       }
     }
@@ -175,36 +200,42 @@ package com.example.myapplication
                 listOf(
                     FoodItem("h1", "상큼 과일 샐러드", null, 220, listOf("상큼", "가벼움")),
                     FoodItem("h2", "탄산수 레몬", null, 0, listOf("청량")),
-                    FoodItem("h3", "베리 요거트", null, 180, listOf("상큼", "달콤"))
+                    FoodItem("h3", "베리 요거트", null, 180, listOf("상큼", "달콤")),
+                    FoodItem("h7", "과일 플레이트", null, 200, listOf("상큼", "가벼움"))
                 ),
                 listOf(
                     FoodItem("h4", "망고 스무디", null, 260, listOf("달콤", "상큼")),
                     FoodItem("h5", "요거트 파르페", null, 300, listOf("가벼움")),
-                    FoodItem("h6", "딸기 케이크", null, 350, listOf("달콤", "행복"))
+                    FoodItem("h6", "딸기 케이크", null, 350, listOf("달콤", "행복")),
+                    FoodItem("h8", "바나나 팬케이크", null, 420, listOf("달콤"))
                 )
             )
             "angry" -> listOf(
                 listOf(
                     FoodItem("a1", "매콤 치킨", null, 560, listOf("매운맛", "해소")),
                     FoodItem("a2", "핫 칠리 라면", null, 480, listOf("얼큰")),
-                    FoodItem("a3", "김치찌개", null, 420, listOf("얼큰", "해소"))
+                    FoodItem("a3", "김치찌개", null, 420, listOf("얼큰", "해소")),
+                    FoodItem("a7", "매운 돈까스", null, 700, listOf("매운맛"))
                 ),
                 listOf(
                     FoodItem("a4", "매운 떡볶이", null, 520, listOf("매운맛")),
                     FoodItem("a5", "불닭 비빔면", null, 530, listOf("매운맛")),
-                    FoodItem("a6", "청양고추 피자", null, 680, listOf("매운맛", "강렬"))
+                    FoodItem("a6", "청양고추 피자", null, 680, listOf("매운맛", "강렬")),
+                    FoodItem("a8", "마라샹궈", null, 650, listOf("매운맛"))
                 )
             )
             else -> listOf(
                 listOf(
                     FoodItem("n1", "연어 샐러드", null, 350, listOf("담백", "건강")),
                     FoodItem("n2", "녹차", null, 0, listOf("은은함")),
-                    FoodItem("n3", "닭가슴살 샐러드", null, 280, listOf("담백", "건강"))
+                    FoodItem("n3", "닭가슴살 샐러드", null, 280, listOf("담백", "건강")),
+                    FoodItem("n7", "두유 스무디", null, 180, listOf("가벼움"))
                 ),
                 listOf(
                     FoodItem("n4", "두부 샐러드", null, 290, listOf("가벼움")),
                     FoodItem("n5", "캐모마일 티", null, 2, listOf("진정")),
-                    FoodItem("n6", "현미밥 정식", null, 450, listOf("건강", "담백"))
+                    FoodItem("n6", "현미밥 정식", null, 450, listOf("건강", "담백")),
+                    FoodItem("n8", "야채 수프", null, 220, listOf("담백"))
                 )
             )
         }
@@ -214,29 +245,117 @@ package com.example.myapplication
 
     private fun showOtherFoods() {
         val label = lastEmotionLabel ?: return
-        altIndex += 1
-        val foods = getFoodsFor(
-            when (label) {
-                "happy", "angry", "neutral" -> label
-                else -> "neutral"
-            },
-            altIndex
-        )
-        lastRecommendedFoods = foods  // 현재 표시되는 음식 목록 업데이트
-        adapter.submitList(foods)
+        // 서버에서 같은 감정으로 새로운 추천 4개를 다시 요청 (오류 시 로컬 세트 폴백)
+        lifecycleScope.launch {
+            setLoading(true)
+            val response = withContext(Dispatchers.IO) {
+                try {
+                    ApiClient.api.recommend(
+                        RecommendRequest(
+                            mood = when (label) { "happy", "angry", "neutral" -> label else -> "neutral" },
+                            preferences = null,
+                            top_k = 4
+                        )
+                    )
+                } catch (e: Exception) {
+                    null
+                }
+            }
+
+            var foods: List<FoodItem> = if (response != null) {
+                response.items.map { item ->
+                    FoodItem(
+                        id = item.name,
+                        name = item.name,
+                        imageUrl = null,
+                        calories = item.kcal,
+                        tags = item.tags
+                    )
+                }
+            } else {
+                // 서버 실패 시 로컬 다른 세트 사용
+                altIndex += 1
+                getFoodsFor(
+                    when (label) { "happy", "angry", "neutral" -> label else -> "neutral" },
+                    altIndex
+                )
+            }
+
+            if (foods.size > 4) foods = foods.take(4)
+            if (foods.size < 4) {
+                val extra = getFoodsFor(label, altIndex + 1)
+                foods = (foods + extra).distinctBy { it.id }.take(4)
+            }
+
+            lastRecommendedFoods = foods
+            adapter.submitList(foods)
+            setLoading(false)
+        }
     }
 
     private fun updateQuestion() {
         val total = questions.size
-        val remain = total - currentIndex
         val title = questions.getOrNull(currentIndex) ?: questions.last()
-        textQuestion.text = "$title"
-        // 진행 상황을 결과 텍스트에 함께 보여주고 싶다면 여기에 표시 가능
+        textQuestion.text = title
+        textQuestionCounter.text = "${currentIndex + 1}/$total"
+        // 설문 진행 UI 보이기
+        textQuestion.visibility = View.VISIBLE
+        textQuestionCounter.visibility = View.VISIBLE
+        imageTopEgg.visibility = View.VISIBLE
+        textResultTitle.visibility = View.GONE
+        textEmotionResult.visibility = View.GONE
+        btnGood.visibility = View.VISIBLE
+        btnAngry.visibility = View.VISIBLE
+        btnNone.visibility = View.VISIBLE
+        btnMore.visibility = View.GONE
+        adapter.submitList(emptyList())
+    }
+
+    private fun getNickname(): String {
+        val user = Firebase.auth.currentUser
+        val display = user?.displayName?.takeIf { it.isNotBlank() }
+        if (display != null) return display
+        val email = user?.email
+        if (!email.isNullOrBlank()) return email.substringBefore('@')
+        return "사용자"
+    }
+
+    private fun goBackOneStep() {
+        // 결과 화면 상태라면 설문 마지막 문항으로 되돌림
+        if (textResultTitle.visibility == View.VISIBLE || currentIndex >= questions.size) {
+            currentIndex = (questions.size - 1).coerceAtLeast(0)
+            // 마지막 선택 취소 처리 (있다면)
+            if (answersHistory.isNotEmpty()) {
+                val last = answersHistory.removeAt(answersHistory.size - 1)
+                scores[last] = (scores[last] ?: 1) - 1
+            }
+            updateQuestion()
+            return
+        }
+
+        // 설문 도중이면 한 문항 뒤로
+        if (currentIndex > 0) {
+            currentIndex -= 1
+            // 이전 문항에서 선택한 점수를 되돌림
+            if (answersHistory.isNotEmpty()) {
+                val last = answersHistory.removeAt(answersHistory.size - 1)
+                scores[last] = (scores[last] ?: 1) - 1
+            }
+            updateQuestion()
+        } else {
+            // 첫 문항이면 액티비티 종료(필요 시 유지)
+            finish()
+        }
+    }
+
+    override fun onBackPressed() {
+        goBackOneStep()
     }
 
     private fun onAnswer(bucket: String) {
         // 점수 누적
         scores[bucket] = (scores[bucket] ?: 0) + 1
+        answersHistory.add(bucket)
 
         currentIndex += 1
         if (currentIndex < questions.size) {
@@ -248,7 +367,6 @@ package com.example.myapplication
         val maxEntry = scores.maxByOrNull { it.value }
         val label = maxEntry?.key ?: "neutral"
         analyzeWithEmotion(label)
-
         // 응답 종료 후 버튼 유지/숨김 처리 (원하면 숨김)
         btnGood.visibility = View.GONE
         btnAngry.visibility = View.GONE
