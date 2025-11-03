@@ -133,7 +133,7 @@
                 android:layout_height="1dp"
                 android:background="#EEEEEE" />
 
-            <!-- 감정 패턴 설정 -->
+            <!-- 설문조사 진입 -->
             <LinearLayout
                 android:id="@+id/layoutEmotionPattern"
                 android:layout_width="match_parent"
@@ -148,7 +148,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="감정 패턴 설정"
+                    android:text="설문조사"
                     android:textColor="@color/dark_brown_text"
                     android:textSize="16sp" />
 

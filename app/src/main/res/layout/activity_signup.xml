@@ -15,6 +15,19 @@
         android:orientation="vertical"
         android:padding="32dp">
 
+        <!-- 뒤로가기 버튼 -->
+        <ImageButton
+            android:id="@+id/btnBackSignup"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="start"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="뒤로 가기"
+            android:padding="12dp"
+            android:src="@drawable/ic_arrow_back"
+            android:tint="#8B5A2B"
+            android:layout_marginBottom="16dp"/>
+
         <!-- 앱 로고 -->
         <ImageView
             android:layout_width="120dp"

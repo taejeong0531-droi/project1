@@ -39,6 +39,24 @@
             android:exported="false"
             android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
             
+        <!-- 프로필 수정 액티비티 -->
+        <activity
+            android:name=".EditProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+
+        <!-- 음식 취향 설정 액티비티 -->
+        <activity
+            android:name=".FoodPreferenceActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+
+        <!-- 감정-음식 경험 설문 액티비티 -->
+        <activity
+            android:name=".EmotionExperienceActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
+
         <!-- 계정 찾기 액티비티 -->
         <activity
             android:name=".auth.FindAccountActivity"

@@ -12,6 +12,7 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.firestore.ktx.firestore
 import android.text.Editable
 import android.text.TextWatcher
+import android.widget.ImageButton
 
 class SignUpActivity : AppCompatActivity() {
     
@@ -20,6 +21,7 @@ class SignUpActivity : AppCompatActivity() {
     private lateinit var editConfirmPassword: TextInputEditText
     private lateinit var editEmail: TextInputEditText
     private lateinit var btnCompleteSignUp: MaterialButton
+    private lateinit var btnBackSignup: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,6 +33,10 @@ class SignUpActivity : AppCompatActivity() {
         editConfirmPassword = findViewById(R.id.editConfirmPassword)
         editEmail = findViewById(R.id.editEmail)
         btnCompleteSignUp = findViewById(R.id.btnCompleteSignUp)
+        btnBackSignup = findViewById(R.id.btnBackSignup)
+
+        // 뒤로가기 버튼 클릭 시 종료
+        btnBackSignup.setOnClickListener { finish() }
 
         // 실시간 검증 리스너 등록
         val watcher = object : TextWatcher {

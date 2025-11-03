@@ -1,37 +1,40 @@
 package com.example.myapplication
-  
-  import android.os.Bundle
-  import android.view.View
-  import android.widget.Button
-  import android.widget.ProgressBar
-  import android.widget.TextView
-  import android.widget.ImageButton
-  import android.widget.ImageView
-  import androidx.activity.viewModels
-  import androidx.appcompat.app.AppCompatActivity
-  import androidx.lifecycle.lifecycleScope
-  import androidx.recyclerview.widget.LinearLayoutManager
-  import androidx.recyclerview.widget.RecyclerView
-  import com.example.myapplication.data.AppDatabase
-  import com.example.myapplication.data.EmotionEntry
-  import com.example.myapplication.data.EmotionRepository
-  import com.example.myapplication.data.FoodSelection
-  import com.example.myapplication.ui.EmotionViewModel
-  import com.example.myapplication.util.UserIdProvider
-  import com.example.myapplication.network.ApiClient
-  import com.example.myapplication.network.model.RecommendRequest
-  import com.google.firebase.ktx.Firebase
-  import com.google.firebase.auth.ktx.auth
-  import kotlinx.coroutines.Dispatchers
-  import kotlinx.coroutines.launch
-  import kotlinx.coroutines.withContext
-  import java.time.LocalDate
-  class EmotionActivity : AppCompatActivity() {
-      private val emotionViewModel: EmotionViewModel by viewModels()
-      private lateinit var userId: String
-      private lateinit var btnGood: Button
-      private lateinit var btnAngry: Button
-    private lateinit var btnNone: Button
+
+import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.myapplication.data.AppDatabase
+import com.example.myapplication.data.EmotionEntry
+import com.example.myapplication.data.EmotionRepository
+import com.example.myapplication.data.FoodSelection
+import com.example.myapplication.network.ApiClient
+import com.example.myapplication.network.model.RecommendRequest
+import com.example.myapplication.ui.EmotionViewModel
+import com.example.myapplication.util.UserIdProvider
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
+
+class EmotionActivity : AppCompatActivity() {
+    private val emotionViewModel: EmotionViewModel by viewModels()
+    private lateinit var userId: String
+    private lateinit var btnVeryNo: Button
+    private lateinit var btnNo: Button
+    private lateinit var btnMid: Button
+    private lateinit var btnYes: Button
+    private lateinit var btnVeryYes: Button
     private lateinit var btnMore: Button
     private lateinit var btnBack: ImageButton
     private lateinit var progress: ProgressBar
@@ -44,21 +47,45 @@ package com.example.myapplication
     private lateinit var adapter: EmotionAdapter
     private lateinit var repository: EmotionRepository
     
-    // 5문항 진행 상태
-    private val questions = listOf(
-        "오늘 하루 중 가장 기억에 남는 일",
-        "지금 기분을 한 단어로 고른다면?",
-        "오늘 사람들과의 관계는 어땠나요?",
-        "몸 컨디션은 어떤가요?",
-        "지금 먹고 싶은 음식 느낌은?"
+    // 5문항 진행 상태 (카테고리별 질문 풀에서 랜덤 1개씩 선택)
+    private data class QA(val category: String, val text: String)
+    private val categories: Map<String, List<String>> = mapOf(
+        "기쁨-슬픔" to listOf(
+            "오늘 하루 기분은 대체로 밝은 편인가요?",
+            "최근에 웃을 일이 있었나요?",
+            "요즘 마음이 무겁게 느껴지나요?" // 부정 문장(반전 필요)
+        ),
+        "피로-활력" to listOf(
+            "몸이 피곤하거나 기운이 빠진 느낌이 있나요?", // 부정(피로)
+            "오늘은 새로운 일을 시작할 에너지가 있나요?",
+            "쉬고 싶다는 생각이 자주 드나요?" // 부정(피로)
+        ),
+        "외로움-안정감" to listOf(
+            "요즘 혼자 있는 시간이 외롭다고 느껴지나요?", // 부정(외로움)
+            "누군가와 함께 시간을 보내고 싶나요?", // 부정(외로움)
+            "지금의 나 자신이 꽤 안정되어 있다고 느끼나요?"
+        ),
+        "스트레스-여유" to listOf(
+            "요즘 일이나 공부 때문에 머리가 복잡한가요?", // 부정(스트레스)
+            "마음의 여유를 느끼고 있나요?",
+            "오늘 하루 스트레스를 받는 일이 있었나요?" // 부정(스트레스)
+        ),
+        "집중-산만" to listOf(
+            "요즘 집중이 잘 되는 편인가요?",
+            "생각이 자꾸 다른 데로 새는 느낌이 있나요?", // 부정(산만)
+            "무언가에 몰입하는 시간이 있었나요?"
+        )
     )
+    private lateinit var selectedQA: List<QA>
     private var currentIndex = 0
-    private val scores = mutableMapOf(
-        "happy" to 0,
-        "angry" to 0,
-        "neutral" to 0
+    // 감정 벡터 누적
+    private val vector = mutableMapOf(
+        "joy" to 0,
+        "energy" to 0,
+        "social" to 0, // 안정감(+)/외로움(-)
+        "calm" to 0,   // 여유(+)/스트레스(-)
+        "focus" to 0   // 집중(+)/산만(-)
     )
-    private val answersHistory = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,9 +98,11 @@ package com.example.myapplication
         emotionViewModel.startObserving(userId)
 
         // View refs
-        btnGood = findViewById(R.id.btnGood)
-        btnAngry = findViewById(R.id.btnAngry)
-        btnNone = findViewById(R.id.btnNone)
+        btnVeryNo = findViewById(R.id.btnVeryNo)
+        btnNo = findViewById(R.id.btnNo)
+        btnMid = findViewById(R.id.btnMid)
+        btnYes = findViewById(R.id.btnYes)
+        btnVeryYes = findViewById(R.id.btnVeryYes)
         btnMore = findViewById(R.id.btnMore)
         btnBack = findViewById(R.id.btnBack)
         progress = findViewById(R.id.progress)
@@ -93,13 +122,20 @@ package com.example.myapplication
         val database = AppDatabase.getDatabase(this)
         repository = EmotionRepository(database.emotionDao())
 
+        // 5개 카테고리에서 랜덤 1문항씩 선택
+        selectedQA = categories.map { (cat, list) ->
+            val q = list.random()
+            QA(cat, q)
+        }
         // 첫 질문 표시
         updateQuestion()
 
-        // 버튼 클릭으로 응답 저장 후 다음 질문 진행
-        btnGood.setOnClickListener { onAnswer("happy") }
-        btnAngry.setOnClickListener { onAnswer("angry") }
-        btnNone.setOnClickListener { onAnswer("neutral") }
+        // 5점 척도 응답: -2, -1, 0, +1, +2
+        btnVeryNo.setOnClickListener { onAnswerScore(-2) }
+        btnNo.setOnClickListener { onAnswerScore(-1) }
+        btnMid.setOnClickListener { onAnswerScore(0) }
+        btnYes.setOnClickListener { onAnswerScore(+1) }
+        btnVeryYes.setOnClickListener { onAnswerScore(+2) }
         btnMore.setOnClickListener { showOtherFoods() }
         btnBack.setOnClickListener { goBackOneStep() }
     }
@@ -107,12 +143,15 @@ package com.example.myapplication
     private var lastScore: Float = 0.9f
     private var lastRecommendedFoods: List<FoodItem> = emptyList()
     private var altIndex: Int = 0
+    private var savedOnce: Boolean = false
 
     private fun setLoading(loading: Boolean) {
         progress.visibility = if (loading) View.VISIBLE else View.GONE
-        btnGood.isEnabled = !loading
-        btnAngry.isEnabled = !loading
-        btnNone.isEnabled = !loading
+        btnVeryNo.isEnabled = !loading
+        btnNo.isEnabled = !loading
+        btnMid.isEnabled = !loading
+        btnYes.isEnabled = !loading
+        btnVeryYes.isEnabled = !loading
     }
 
     private fun analyzeWithEmotion(label: String) {
@@ -142,7 +181,7 @@ package com.example.myapplication
                   ApiClient.api.recommend(
                       RecommendRequest(
                           mood = emotionLabel,
-                          preferences = null,
+                          preferences = loadSelectedTags(),
                           top_k = 4
                       )
                   )
@@ -189,6 +228,13 @@ package com.example.myapplication
           // 리스트 표시
           adapter.submitList(foods)
           btnMore.visibility = View.VISIBLE
+
+          // 초기 결과를 로컬 DB에 1회 저장 (사용자가 항목을 탭하지 않아도 기록이 남도록)
+          if (!savedOnce) {
+              val labelForSave = emotionLabel
+              saveEmotionResult(labelForSave, lastScore, foods)
+              savedOnce = true
+          }
           setLoading(false)
       }
     }
@@ -252,7 +298,7 @@ package com.example.myapplication
                     ApiClient.api.recommend(
                         RecommendRequest(
                             mood = when (label) { "happy", "angry", "neutral" -> label else -> "neutral" },
-                            preferences = null,
+                            preferences = loadSelectedTags(),
                             top_k = 4
                         )
                     )
@@ -293,8 +339,8 @@ package com.example.myapplication
     }
 
     private fun updateQuestion() {
-        val total = questions.size
-        val title = questions.getOrNull(currentIndex) ?: questions.last()
+        val total = selectedQA.size
+        val title = selectedQA.getOrNull(currentIndex)?.text ?: selectedQA.last().text
         textQuestion.text = title
         textQuestionCounter.text = "${currentIndex + 1}/$total"
         // 설문 진행 UI 보이기
@@ -303,9 +349,11 @@ package com.example.myapplication
         imageTopEgg.visibility = View.VISIBLE
         textResultTitle.visibility = View.GONE
         textEmotionResult.visibility = View.GONE
-        btnGood.visibility = View.VISIBLE
-        btnAngry.visibility = View.VISIBLE
-        btnNone.visibility = View.VISIBLE
+        btnVeryNo.visibility = View.VISIBLE
+        btnNo.visibility = View.VISIBLE
+        btnMid.visibility = View.VISIBLE
+        btnYes.visibility = View.VISIBLE
+        btnVeryYes.visibility = View.VISIBLE
         btnMore.visibility = View.GONE
         adapter.submitList(emptyList())
     }
@@ -321,13 +369,8 @@ package com.example.myapplication
 
     private fun goBackOneStep() {
         // 결과 화면 상태라면 설문 마지막 문항으로 되돌림
-        if (textResultTitle.visibility == View.VISIBLE || currentIndex >= questions.size) {
-            currentIndex = (questions.size - 1).coerceAtLeast(0)
-            // 마지막 선택 취소 처리 (있다면)
-            if (answersHistory.isNotEmpty()) {
-                val last = answersHistory.removeAt(answersHistory.size - 1)
-                scores[last] = (scores[last] ?: 1) - 1
-            }
+        if (textResultTitle.visibility == View.VISIBLE || currentIndex >= selectedQA.size) {
+            currentIndex = (selectedQA.size - 1).coerceAtLeast(0)
             updateQuestion()
             return
         }
@@ -335,49 +378,70 @@ package com.example.myapplication
         // 설문 도중이면 한 문항 뒤로
         if (currentIndex > 0) {
             currentIndex -= 1
-            // 이전 문항에서 선택한 점수를 되돌림
-            if (answersHistory.isNotEmpty()) {
-                val last = answersHistory.removeAt(answersHistory.size - 1)
-                scores[last] = (scores[last] ?: 1) - 1
-            }
             updateQuestion()
         } else {
-            // 첫 문항이면 액티비티 종료(필요 시 유지)
             finish()
         }
     }
 
     override fun onBackPressed() {
+        super.onBackPressed()
         goBackOneStep()
     }
 
-    private fun onAnswer(bucket: String) {
-        // 점수 누적
-        scores[bucket] = (scores[bucket] ?: 0) + 1
-        answersHistory.add(bucket)
+    private fun onAnswerScore(score: Int) {
+        val qa = selectedQA.getOrNull(currentIndex) ?: return
+        val sign = polarityFor(qa)
+        when (qa.category) {
+            "기쁨-슬픔" -> vector["joy"] = (vector["joy"] ?: 0) + score * sign
+            "피로-활력" -> vector["energy"] = (vector["energy"] ?: 0) + score * sign
+            "외로움-안정감" -> vector["social"] = (vector["social"] ?: 0) + score * sign
+            "스트레스-여유" -> vector["calm"] = (vector["calm"] ?: 0) + score * sign
+            "집중-산만" -> vector["focus"] = (vector["focus"] ?: 0) + score * sign
+        }
 
         currentIndex += 1
-        if (currentIndex < questions.size) {
+        if (currentIndex < selectedQA.size) {
             updateQuestion()
             return
         }
 
-        // 5문항 종료 → 최다 득표 감정 선택
-        val maxEntry = scores.maxByOrNull { it.value }
-        val label = maxEntry?.key ?: "neutral"
+        val label = decideMoodFromVector()
         analyzeWithEmotion(label)
-        // 응답 종료 후 버튼 유지/숨김 처리 (원하면 숨김)
-        btnGood.visibility = View.GONE
-        btnAngry.visibility = View.GONE
-        btnNone.visibility = View.GONE
+        btnVeryNo.visibility = View.GONE
+        btnNo.visibility = View.GONE
+        btnMid.visibility = View.GONE
+        btnYes.visibility = View.GONE
+        btnVeryYes.visibility = View.GONE
+    }
+
+    private fun polarityFor(qa: QA): Int {
+        val t = qa.text
+        val negativeKeywords = listOf("무겁", "피곤", "쉬고 싶", "외롭", "스트레스", "산만", "복잡", "새는")
+        val hasNeg = negativeKeywords.any { t.contains(it) }
+        return if (hasNeg) -1 else +1
+    }
+
+    private fun decideMoodFromVector(): String {
+        val joy = vector["joy"] ?: 0
+        val energy = vector["energy"] ?: 0
+        val calm = vector["calm"] ?: 0
+        val focus = vector["focus"] ?: 0
+        return when {
+            joy >= 2 && energy >= 1 -> "happy"
+            calm <= -1 || energy <= -2 -> "angry"
+            else -> "neutral"
+        }
     }
 
     private fun clearSurvey() {
         currentIndex = 0
-        scores.keys.forEach { scores[it] = 0 }
-        btnGood.visibility = View.VISIBLE
-        btnAngry.visibility = View.VISIBLE
-        btnNone.visibility = View.VISIBLE
+        vector.keys.forEach { key -> vector[key] = 0 }
+        btnVeryNo.visibility = View.VISIBLE
+        btnNo.visibility = View.VISIBLE
+        btnMid.visibility = View.VISIBLE
+        btnYes.visibility = View.VISIBLE
+        btnVeryYes.visibility = View.VISIBLE
         textQuestion.visibility = View.VISIBLE
         textResultTitle.visibility = View.GONE
         updateQuestion()
@@ -389,33 +453,9 @@ package com.example.myapplication
         btnMore.visibility = View.GONE
         clearSurvey()
     }
-    
-    private fun saveEmotionResult(emotion: String, score: Float, foods: List<FoodItem>) {
-        lifecycleScope.launch {
-            val today = LocalDate.now().toEpochDay()
-            val entry = EmotionEntry(
-                dateEpochDay = today,
-                emotion = emotion,
-                score = score
-            )
-            
-            val foodSelections = foods.map { food ->
-                FoodSelection(
-                    entryId = 0, // DAO에서 자동으로 채워짐
-                    name = food.name,
-                    calories = food.calories,
-                    tags = food.tags.joinToString(",")
-                )
-            }
-            
-            repository.saveEmotionAnalysis(entry, foodSelections)
-        }
-    }
-    
+
     private fun onFoodSelected(selectedFood: FoodItem) {
         val emotionLabel = lastEmotionLabel ?: "neutral"
-
-        // 현재 어댑터에 표시되고 있는 음식 목록에서 선택한 음식을 찾아서 저장
         lifecycleScope.launch {
             val today = LocalDate.now().toEpochDay()
             val entry = EmotionEntry(
@@ -440,6 +480,43 @@ package com.example.myapplication
 
             // 홈 화면으로 돌아가기
             finish()
+        }
+    }
+
+    /**
+     * 사용자가 `FoodPreferenceActivity`에서 저장한 태그를 불러온다.
+     */
+    private fun loadSelectedTags(): List<String> {
+        val prefs = getSharedPreferences(FoodPreferenceActivity.PREFS_NAME, MODE_PRIVATE)
+        val set = prefs.getStringSet(FoodPreferenceActivity.KEY_SELECTED_TAGS, emptySet())
+            ?: emptySet()
+        return set.toList()
+    }
+
+    /**
+     * 추천 결과가 처음 표시될 때, 사용자가 항목을 탭하지 않아도 분석 기록이 남도록 1회 저장한다.
+     * 모든 항목은 isSelected = false 로 저장한다.
+     */
+    private fun saveEmotionResult(label: String, score: Float, foods: List<FoodItem>) {
+        lifecycleScope.launch {
+            val today = LocalDate.now().toEpochDay()
+            val entry = EmotionEntry(
+                dateEpochDay = today,
+                emotion = label,
+                score = score
+            )
+
+            val selections = foods.map { food ->
+                FoodSelection(
+                    entryId = 0,
+                    name = food.name,
+                    calories = food.calories,
+                    tags = food.tags.joinToString(","),
+                    isSelected = false
+                )
+            }
+
+            repository.saveEmotionAnalysis(entry, selections)
         }
     }
 }

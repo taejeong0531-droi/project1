@@ -73,27 +73,55 @@
         android:layout_marginBottom="36dp"
         android:visibility="gone" />
 
-    <!-- 감정 선택 버튼 3개 (모크 스타일) -->
+    <!-- 5점 선택 버튼 -->
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnGood"
+        android:id="@+id/btnVeryNo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:text="좋은 일"
+        android:layout_marginBottom="10dp"
+        android:text="매우 아니다"
         android:textStyle="bold"
         android:textAllCaps="false"
         android:textColor="#814C05"
         android:insetTop="10dp"
         android:insetBottom="10dp"
         app:cornerRadius="20dp"
-        android:backgroundTint="#FFD966"/>
+        android:backgroundTint="#F5E2C8"/>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnAngry"
+        android:id="@+id/btnNo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:text="화나는 일"
+        android:layout_marginBottom="10dp"
+        android:text="아니다"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="#814C05"
+        android:insetTop="10dp"
+        android:insetBottom="10dp"
+        app:cornerRadius="20dp"
+        android:backgroundTint="#EED9BB"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnMid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="보통"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="#814C05"
+        android:insetTop="10dp"
+        android:insetBottom="10dp"
+        app:cornerRadius="20dp"
+        android:backgroundTint="#EADCC1"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnYes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="그렇다"
         android:textStyle="bold"
         android:textAllCaps="false"
         android:textColor="#FFFFFF"
@@ -103,18 +131,18 @@
         android:backgroundTint="#E08E54"/>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnNone"
+        android:id="@+id/btnVeryYes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:text="아무 일도 없음"
+        android:layout_marginBottom="10dp"
+        android:text="매우 그렇다"
         android:textStyle="bold"
         android:textAllCaps="false"
         android:textColor="#814C05"
         android:insetTop="10dp"
         android:insetBottom="10dp"
         app:cornerRadius="20dp"
-        android:backgroundTint="#EADCC1"/>
+        android:backgroundTint="#FFD966"/>
 
     <!-- 로딩 표시 -->
     <ProgressBar
