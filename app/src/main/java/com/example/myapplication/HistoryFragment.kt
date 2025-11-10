@@ -58,13 +58,20 @@ class HistoryFragment : Fragment() {
         recyclerHistory.adapter = adapter
         
         // 오늘 날짜로 초기화
-        updateSelectedDate(selectedDateEpochDay)
+        viewLifecycleOwner.lifecycleScope.launch {
+            // 과거 자동저장 잔재 정리
+            repository.cleanupEntriesWithoutSelection()
+            updateSelectedDate(selectedDateEpochDay)
+        }
         
         // 달력 날짜 선택 리스너
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
             val selectedDate = LocalDate.of(year, month + 1, dayOfMonth)
             selectedDateEpochDay = selectedDate.toEpochDay()
-            updateSelectedDate(selectedDateEpochDay)
+            viewLifecycleOwner.lifecycleScope.launch {
+                repository.cleanupEntriesWithoutSelection()
+                updateSelectedDate(selectedDateEpochDay)
+            }
         }
     }
     
@@ -87,12 +94,20 @@ class HistoryFragment : Fragment() {
                     recyclerHistory.visibility = View.VISIBLE
                     textEmptyState.visibility = View.GONE
                     
-                    // 각 엔티티에 대한 음식 정보 로드
+                    // 각 엔티티에 대한 음식 정보 로드 후, 선택된 음식이 있는 기록만 노출
                     val itemsWithFoods = entries.map { entry ->
                         val foods = repository.getFoodsByEntry(entry.id)
                         HistoryItemWithFoods(entry, foods)
                     }
-                    adapter.submitList(itemsWithFoods)
+                    val onlySelected = itemsWithFoods.filter { it.foods.any { f -> f.isSelected } }
+                    if (onlySelected.isEmpty()) {
+                        recyclerHistory.visibility = View.GONE
+                        textEmptyState.visibility = View.VISIBLE
+                    } else {
+                        recyclerHistory.visibility = View.VISIBLE
+                        textEmptyState.visibility = View.GONE
+                        adapter.submitList(onlySelected)
+                    }
                 }
             }
         }

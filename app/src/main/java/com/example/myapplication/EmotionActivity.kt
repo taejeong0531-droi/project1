@@ -144,6 +144,7 @@ class EmotionActivity : AppCompatActivity() {
     private var lastRecommendedFoods: List<FoodItem> = emptyList()
     private var altIndex: Int = 0
     private var savedOnce: Boolean = false
+    private var selectionCommitted: Boolean = false
 
     private fun setLoading(loading: Boolean) {
         progress.visibility = if (loading) View.VISIBLE else View.GONE
@@ -229,12 +230,7 @@ class EmotionActivity : AppCompatActivity() {
           adapter.submitList(foods)
           btnMore.visibility = View.VISIBLE
 
-          // 초기 결과를 로컬 DB에 1회 저장 (사용자가 항목을 탭하지 않아도 기록이 남도록)
-          if (!savedOnce) {
-              val labelForSave = emotionLabel
-              saveEmotionResult(labelForSave, lastScore, foods)
-              savedOnce = true
-          }
+          // 자동 저장 제거: 사용자가 실제로 음식을 선택할 때만 기록을 저장합니다.
           setLoading(false)
       }
     }
@@ -455,6 +451,8 @@ class EmotionActivity : AppCompatActivity() {
     }
 
     private fun onFoodSelected(selectedFood: FoodItem) {
+        if (selectionCommitted) return
+        selectionCommitted = true
         val emotionLabel = lastEmotionLabel ?: "neutral"
         lifecycleScope.launch {
             val today = LocalDate.now().toEpochDay()
@@ -464,17 +462,16 @@ class EmotionActivity : AppCompatActivity() {
                 score = lastScore
             )
 
-            // 현재 표시되고 있는 모든 음식을 저장하되, 선택한 음식만 isSelected = true
-            val currentFoods = adapter.getCurrentItems()
-            val foodSelections = currentFoods.map { food ->
+            // 선택한 음식 1개만 저장
+            val foodSelections = listOf(
                 FoodSelection(
                     entryId = 0,
-                    name = food.name,
-                    calories = food.calories,
-                    tags = food.tags.joinToString(","),
-                    isSelected = food.id == selectedFood.id
+                    name = selectedFood.name,
+                    calories = selectedFood.calories,
+                    tags = selectedFood.tags.joinToString(","),
+                    isSelected = true
                 )
-            }
+            )
 
             repository.saveEmotionAnalysis(entry, foodSelections)
 

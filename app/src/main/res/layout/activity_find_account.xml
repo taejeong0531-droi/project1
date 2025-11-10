@@ -28,37 +28,16 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="24dp"
             android:gravity="center"
             android:text="계정 찾기"
             android:textColor="#8B5A2B"
             android:textSize="24sp"
             android:textStyle="bold" />
 
-        <!-- 탭 레이아웃 -->
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:tabIndicatorColor="#8B5A2B"
-            app:tabSelectedTextColor="#8B5A2B"
-            app:tabTextColor="#D2B48C">
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="아이디 찾기" />
-
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="비밀번호 찾기" />
-        </com.google.android.material.tabs.TabLayout>
-
-        <!-- 뷰페이저 -->
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/viewPager"
+        <!-- 프래그먼트 컨테이너 -->
+        <FrameLayout
+            android:id="@+id/fragmentContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent" />
