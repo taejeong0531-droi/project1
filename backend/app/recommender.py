@@ -1,6 +1,14 @@
 import datetime
 from typing import List, Dict, Any, Tuple
 
+try:
+    from .external import search_spoonacular_foods, translate_titles_via_papago  # optional external API
+except Exception:  # pragma: no cover
+    def search_spoonacular_foods(queries: List[str], number: int = 10) -> List[str]:
+        return []
+    def translate_titles_via_papago(titles: List[str]) -> List[str]:
+        return titles
+
 # ------------------------------
 # 1) 감정 분석 (데모용 규칙 기반)
 # ------------------------------
@@ -31,7 +39,30 @@ emotion_food_map: Dict[str, List[str]] = {
 }
 
 
+def _emotion_queries(emotion: str) -> List[str]:
+    e = emotion.lower()
+    if e in ("stress", "angry"):
+        return ["spicy soup", "ramen", "kimchi stew", "spicy chicken", "tteokbokki"]
+    if e in ("sad",):
+        return ["comfort soup", "porridge", "noodle soup", "tofu stew", "warm rice bowl"]
+    if e in ("tired",):
+        return ["salad bowl", "salmon rice bowl", "tofu", "bibimbap", "protein salad"]
+    if e in ("lonely",):
+        return ["fried chicken", "pasta", "pizza", "hamburger", "risotto"]
+    return ["kimchi stew", "bibim noodles", "soft tofu stew", "sandwich"]
+
+
 def get_candidates_by_emotion(emotion: str, score: float, top_k: int = 5) -> List[str]:
+    # 1) Try external API
+    queries = _emotion_queries(emotion)
+    ext = search_spoonacular_foods(queries, number=top_k)
+    if ext:
+        try:
+            ext = translate_titles_via_papago(ext)
+        except Exception:
+            pass
+        return ext[:top_k]
+    # 2) Fallback to internal pool
     pool = emotion_food_map.get(emotion, emotion_food_map['neutral'])
     if score >= 0.8:
         return pool[:top_k]
@@ -137,7 +168,16 @@ heavy_foods = {'삼겹살', '치킨', '피자'}
 spicy_foods = {'짬뽕', '떡볶이', '마라탕', '김치찌개'}
 
 
-def personalized_score(food: str, user_profile: Dict[str, Any], emotion: str, emotion_score: float, weather: Dict[str, Any], now: datetime.datetime) -> float:
+def personalized_score(
+    food: str,
+    user_profile: Dict[str, Any],
+    emotion: str,
+    emotion_score: float,
+    weather: Dict[str, Any],
+    now: datetime.datetime,
+    emotion_vector: Dict[str, int] | None = None,
+    intensity: float | None = None,
+) -> float:
     score = 0.0
 
     # 1) 감정 점수
@@ -167,13 +207,57 @@ def personalized_score(food: str, user_profile: Dict[str, Any], emotion: str, em
     score += frequency_penalty(food, logs, now)          # 최대 -0.1
     score += category_diversity_adjust(food, logs, now)  # -0.05 ~ +0.02
 
-    # 6) 날씨
+    # 6) 감정 벡터/강도 반영(선택)
+    if emotion_vector:
+        try:
+            joy = int(emotion_vector.get('joy', 0))
+            energy = int(emotion_vector.get('energy', 0))
+            social = int(emotion_vector.get('social', 0))
+            calm = int(emotion_vector.get('calm', 0))
+            focus = int(emotion_vector.get('focus', 0))
+            # 저에너지/저평정(피로/스트레스)일수록 자극/무거운 음식 감점, 따뜻한 국물 가점
+            if energy <= -1 and get_category(food) in {'spicy_soup', 'western'}:
+                score -= 0.05
+            if calm <= -1 and food in spicy_foods:
+                score -= 0.05
+            if energy <= -1 or calm <= -1:
+                if get_category(food) in {'soup', 'noodle_soup', 'spicy_soup'}:
+                    score += 0.04
+            # 기쁨이 높으면 가벼운/양식 소폭 가산
+            if joy >= 2 and get_category(food) in {'western', 'noodle'}:
+                score += 0.03
+            # 집중 낮으면 아주 무거운 음식 감점
+            if focus <= -1 and food in heavy_foods:
+                score -= 0.05
+            # 외로움 높으면 따뜻/국물 선호 소폭 가산
+            if social <= -1 and get_category(food) in {'soup', 'noodle_soup'}:
+                score += 0.03
+        except Exception:
+            pass
+
+    # 강도(0~1) 반영: 감정 매칭 가중 소폭 조정
+    if intensity is not None:
+        try:
+            k = max(0.0, min(1.0, float(intensity)))
+            score += 0.05 * (k - 0.5)  # -0.025 ~ +0.025
+        except Exception:
+            pass
+
+    # 7) 날씨
     score += weather_suitability(food, weather)
 
     return round(float(score), 4)
 
 
-def recommend_final(user_profile: Dict[str, Any], text: str, provided_emotion: Dict[str, Any] | None, weather: Dict[str, Any], topn: int = 3) -> Dict[str, Any]:
+def recommend_final(
+    user_profile: Dict[str, Any],
+    text: str,
+    provided_emotion: Dict[str, Any] | None,
+    weather: Dict[str, Any],
+    topn: int = 3,
+    emotion_vector: Dict[str, int] | None = None,
+    intensity: float | None = None,
+) -> Dict[str, Any]:
     # 감정 분류: 입력으로 감정이 오면 사용, 없으면 텍스트에서 추론
     emo = provided_emotion or simple_emotion_classifier(text)
     emotion, emo_score = emo['emotion'], emo['score']
@@ -182,7 +266,16 @@ def recommend_final(user_profile: Dict[str, Any], text: str, provided_emotion: D
     candidates = get_candidates_by_emotion(emotion, emo_score, top_k=5)
     scored: List[Tuple[str, float]] = []
     for food in candidates:
-        s = personalized_score(food, user_profile, emotion, emo_score, weather, now)
+        s = personalized_score(
+            food,
+            user_profile,
+            emotion,
+            emo_score,
+            weather,
+            now,
+            emotion_vector=emotion_vector,
+            intensity=intensity,
+        )
         scored.append((food, s))
     scored.sort(key=lambda x: x[1], reverse=True)
 

@@ -29,7 +29,10 @@ data class RecommendRequest(
     val text: String,
     val weather: WeatherReq? = null,
     val recent_logs: List<RecentLogReq>? = null,
-    val preferences: PreferencesReq? = null
+    val preferences: PreferencesReq? = null,
+    val emotion_label: String? = null,
+    val emotion_vector: EmotionVector? = null,
+    val score_intensity: Double? = null
 )
 
 @JsonClass(generateAdapter = true)
@@ -43,4 +46,13 @@ data class RecommendResponse(
     val emotion: String,
     val score: Double? = null,
     val top3: List<FoodScore>
+)
+
+@JsonClass(generateAdapter = true)
+data class EmotionVector(
+    val joy: Int,
+    val energy: Int,
+    val social: Int,
+    val calm: Int,
+    val focus: Int
 )

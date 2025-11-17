@@ -19,6 +19,7 @@ import com.example.myapplication.data.FoodSelection
 import com.example.myapplication.network.ApiClient
 import com.example.myapplication.network.model.RecommendRequest
 import com.example.myapplication.network.model.PreferencesReq
+import com.example.myapplication.network.model.EmotionVector
 import com.example.myapplication.ui.EmotionViewModel
 import com.example.myapplication.util.UserIdProvider
 import com.google.firebase.auth.ktx.auth
@@ -193,11 +194,21 @@ class EmotionActivity : AppCompatActivity() {
               try {
                   val token = fetchIdToken()
                   val authHeader = token?.let { "Bearer $it" }
+                  val uidForApi = Firebase.auth.currentUser?.uid ?: "dev-local-user"
                   ApiClient.api.recommend(
                       authHeader,
                       RecommendRequest(
-                          user_id = userId,
+                          user_id = uidForApi,
                           text = emotionLabel,
+                          emotion_label = emotionLabel,
+                          emotion_vector = EmotionVector(
+                              joy = vector["joy"] ?: 0,
+                              energy = vector["energy"] ?: 0,
+                              social = vector["social"] ?: 0,
+                              calm = vector["calm"] ?: 0,
+                              focus = vector["focus"] ?: 0
+                          ),
+                          score_intensity = lastScore.toDouble(),
                           weather = null,
                           recent_logs = null,
                           preferences = PreferencesReq(
@@ -212,8 +223,9 @@ class EmotionActivity : AppCompatActivity() {
               }
           }
 
-          var foods: List<FoodItem> = if (response != null) {
-              response.top3.map { fs ->
+          val fromApi = response != null
+          var foods: List<FoodItem> = if (fromApi) {
+              response!!.top3.map { fs ->
                   FoodItem(
                       id = fs.food,
                       name = fs.food,
@@ -223,14 +235,11 @@ class EmotionActivity : AppCompatActivity() {
                   )
               }
           } else {
-              // 서버 실패 시 로컬 기본 추천으로 폴백
               getFoodsFor(emotionLabel, altIndex)
           }
 
-          // 갯수 보정: 4개로 맞춤
           if (foods.size > 4) foods = foods.take(4)
-          if (foods.size < 4) {
-              // 다른 세트에서 채워 넣기
+          if (!fromApi && foods.size < 4) {
               val extra = getFoodsFor(emotionLabel, altIndex + 1)
               foods = (foods + extra).distinctBy { it.id }.take(4)
           }
@@ -314,11 +323,21 @@ class EmotionActivity : AppCompatActivity() {
                 try {
                     val token = fetchIdToken()
                     val authHeader = token?.let { "Bearer $it" }
+                    val uidForApi = Firebase.auth.currentUser?.uid ?: "dev-local-user"
                     ApiClient.api.recommend(
                         authHeader,
                         RecommendRequest(
-                            user_id = userId,
+                            user_id = uidForApi,
                             text = when (label) { "happy", "angry", "neutral" -> label else -> "neutral" },
+                            emotion_label = when (label) { "happy", "angry", "neutral" -> label else -> "neutral" },
+                            emotion_vector = EmotionVector(
+                                joy = vector["joy"] ?: 0,
+                                energy = vector["energy"] ?: 0,
+                                social = vector["social"] ?: 0,
+                                calm = vector["calm"] ?: 0,
+                                focus = vector["focus"] ?: 0
+                            ),
+                            score_intensity = lastScore.toDouble(),
                             weather = null,
                             recent_logs = null,
                             preferences = PreferencesReq(
@@ -333,8 +352,9 @@ class EmotionActivity : AppCompatActivity() {
                 }
             }
 
-            var foods: List<FoodItem> = if (response != null) {
-                response.top3.map { fs ->
+            val fromApi = response != null
+            var foods: List<FoodItem> = if (fromApi) {
+                response!!.top3.map { fs ->
                     FoodItem(
                         id = fs.food,
                         name = fs.food,
@@ -344,7 +364,6 @@ class EmotionActivity : AppCompatActivity() {
                     )
                 }
             } else {
-                // 서버 실패 시 로컬 다른 세트 사용
                 altIndex += 1
                 getFoodsFor(
                     when (label) { "happy", "angry", "neutral" -> label else -> "neutral" },
@@ -353,7 +372,7 @@ class EmotionActivity : AppCompatActivity() {
             }
 
             if (foods.size > 4) foods = foods.take(4)
-            if (foods.size < 4) {
+            if (!fromApi && foods.size < 4) {
                 val extra = getFoodsFor(label, altIndex + 1)
                 foods = (foods + extra).distinctBy { it.id }.take(4)
             }

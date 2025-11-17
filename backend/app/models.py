@@ -20,12 +20,24 @@ class RecentLogReq(BaseModel):
     timestamp: str  # ISO8601
 
 
+class EmotionVector(BaseModel):
+    joy: int
+    energy: int
+    social: int
+    calm: int
+    focus: int
+
+
 class RecommendRequest(BaseModel):
     user_id: str
     text: str
     weather: Optional[WeatherReq] = None
     recent_logs: Optional[List[RecentLogReq]] = None
     preferences: Optional[PreferencesReq] = None
+    # 추가: 클라이언트 측 감정 분석 결과 전달용(선택)
+    emotion_label: Optional[str] = None  # e.g., "happy" | "angry" | "neutral" 등
+    emotion_vector: Optional[EmotionVector] = None
+    score_intensity: Optional[float] = None  # 0.0~1.0
 
 
 class FoodScore(BaseModel):

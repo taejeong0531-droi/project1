@@ -48,7 +48,7 @@ def health():
 
 
 @app.post("/recommend", response_model=RecommendResponse)
-async def recommend(body: RecommendRequest, uid: Optional[str] = Depends(get_uid)):
+def recommend(body: RecommendRequest, uid: Optional[str] = Depends(get_uid)):
     # uid가 없는 경우는 get_uid에서 dev-local-user 로 대체되므로 여기서는 별도 401을 발생시키지 않는다.
 
     # user_id 일치성 체크(선택)
@@ -124,9 +124,27 @@ async def recommend(body: RecommendRequest, uid: Optional[str] = Depends(get_uid
         weather = {'temp_c': 20.0, 'status': 'mild'}
 
     # 4) 추천 실행
-    # 간단화를 위해 recommender의 내부 emotion_food_map을 사용하되,
-    # Firestore에서 map이 있으면 향후 recommender를 확장하여 주입 가능.
-    result = recommend_final(user_profile, body.text, provided_emotion=None, weather=weather, topn=4)
+    provided = None
+    if getattr(body, 'emotion_label', None):
+        provided = {'emotion': body.emotion_label, 'score': body.score_intensity or 0.9}
+    ev = None
+    if getattr(body, 'emotion_vector', None):
+        ev = {
+            'joy': body.emotion_vector.joy,
+            'energy': body.emotion_vector.energy,
+            'social': body.emotion_vector.social,
+            'calm': body.emotion_vector.calm,
+            'focus': body.emotion_vector.focus,
+        }
+    result = recommend_final(
+        user_profile,
+        body.text,
+        provided_emotion=provided,
+        weather=weather,
+        topn=4,
+        emotion_vector=ev,
+        intensity=body.score_intensity,
+    )
 
     # 5) 응답 포맷
     return RecommendResponse(
