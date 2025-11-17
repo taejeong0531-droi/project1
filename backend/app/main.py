@@ -2,6 +2,7 @@ import os
 import datetime
 from typing import Dict, Any, List, Optional
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,6 +14,8 @@ from .recommender import (
     recommend_final,
     get_category,
 )
+
+load_dotenv()
 
 app = FastAPI(title="Emotion Food Recommender API", version="1.0.0")
 
@@ -27,9 +30,13 @@ app.add_middleware(
 
 
 async def get_uid(authorization: Optional[str] = Header(None)) -> Optional[str]:
-    """Authorization: Bearer <idToken> 에서 Firebase UID 추출."""
+    """Authorization: Bearer <idToken> 에서 Firebase UID 추출.
+
+    로컬 개발 편의를 위해 Authorization 헤더가 없으면 dev-local-user 를 반환한다.
+    실제 배포 시에는 반드시 토큰 검증을 강제해야 한다.
+    """
     if not authorization or not authorization.lower().startswith("bearer "):
-        return None
+        return "dev-local-user"
     token = authorization.split(" ", 1)[1].strip()
     uid = verify_firebase_token(token)
     return uid
@@ -42,9 +49,7 @@ def health():
 
 @app.post("/recommend", response_model=RecommendResponse)
 async def recommend(body: RecommendRequest, uid: Optional[str] = Depends(get_uid)):
-    # 인증 필수: uid가 없으면 401
-    if not uid:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+    # uid가 없는 경우는 get_uid에서 dev-local-user 로 대체되므로 여기서는 별도 401을 발생시키지 않는다.
 
     # user_id 일치성 체크(선택)
     if body.user_id and body.user_id != uid:
@@ -121,7 +126,7 @@ async def recommend(body: RecommendRequest, uid: Optional[str] = Depends(get_uid
     # 4) 추천 실행
     # 간단화를 위해 recommender의 내부 emotion_food_map을 사용하되,
     # Firestore에서 map이 있으면 향후 recommender를 확장하여 주입 가능.
-    result = recommend_final(user_profile, body.text, provided_emotion=None, weather=weather, topn=3)
+    result = recommend_final(user_profile, body.text, provided_emotion=None, weather=weather, topn=4)
 
     # 5) 응답 포맷
     return RecommendResponse(
