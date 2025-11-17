@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/light_gold_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="start"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="뒤로 가기"
+            android:padding="12dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="#8B5A2B"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="감정-음식 경험"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/dark_brown_text"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Q1: 스트레스 받을 때 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="스트레스 받을 때 어떤 음식이 당기나요?"
+            android:textColor="@color/dark_brown_text"
+            android:layout_marginBottom="8dp"/>
+        <RadioGroup
+            android:id="@+id/rgStress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="단 음식"
+                android:tag="sweet"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="매운 음식"
+                android:tag="spicy"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="따뜻한 국물"
+                android:tag="warm_soup"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="특별히 없음"
+                android:tag="none"/>
+        </RadioGroup>
+
+        <!-- Q2: 기분이 좋을 때 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="기분이 좋을 때 무엇이 먹고 싶나요?"
+            android:textColor="@color/dark_brown_text"
+            android:layout_marginBottom="8dp"/>
+        <RadioGroup
+            android:id="@+id/rgGoodMood"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp">
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="가벼운 음식"
+                android:tag="light"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="자극적/풍미 강한 음식"
+                android:tag="savory"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="든든한 한 끼"
+                android:tag="hearty"/>
+        </RadioGroup>
+
+        <!-- Q3: 외로울 때 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="외로울 때 자주 찾는 음식이 있나요?"
+            android:textColor="@color/dark_brown_text"
+            android:layout_marginBottom="8dp"/>
+        <RadioGroup
+            android:id="@+id/rgLonely"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp">
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="나눠먹기 좋은 음식(치킨/피자)"
+                android:tag="shareable"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="위로가 되는 음식(죽/수프/달달한 간식)"
+                android:tag="comfort"/>
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="없음"
+                android:tag="none"/>
+        </RadioGroup>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginTop="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSkip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="건너뛰기"
+                android:textAllCaps="false"
+                android:layout_marginEnd="8dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnNext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="다음"
+                android:textAllCaps="false"
+                android:backgroundTint="#FFD700"
+                android:textColor="@color/dark_brown_text"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootScroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/light_gold_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="start"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="뒤로 가기"
+            android:padding="12dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="#8B5A2B"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="음식 취향 설정"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/dark_brown_text"
+            android:layout_marginBottom="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="해당하는 항목을 선택하세요."
+            android:textColor="@color/dark_brown_text"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- 체크리스트 -->
+        <CheckBox
+            android:id="@+id/cbSpicy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="매운 음식 선호 (spicy)"/>
+
+        <CheckBox
+            android:id="@+id/cbSweet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="달콤한 음식 선호 (sweet)"/>
+
+        <CheckBox
+            android:id="@+id/cbLight"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="가벼운 음식 선호 (light)"/>
+
+        <CheckBox
+            android:id="@+id/cbVeg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="채식 위주 (veg)"/>
+
+        <CheckBox
+            android:id="@+id/cbNoPork"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="돼지고기 제외 (no_pork)"/>
+
+        <CheckBox
+            android:id="@+id/cbLowCarb"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="저탄수 (low_carb)"/>
+
+        <CheckBox
+            android:id="@+id/cbHighProtein"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="고단백 (high_protein)"/>
+
+        <CheckBox
+            android:id="@+id/cbSoup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="국물 있는 음식 선호 (soup)"/>
+
+        <CheckBox
+            android:id="@+id/cbAdventurous"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="새로운 음식 도전 선호 (adventurous)"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="저장 및 다음"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textColor="@color/dark_brown_text"
+            android:backgroundTint="#FFD700"
+            app:cornerRadius="8dp"
+            android:layout_marginTop="20dp"/>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="#DDDDDD"/>
+
+        <!-- B: 감정-음식 경험 -->
+        <TextView
+            android:id="@+id/labelB"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="감정-음식 경험"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/dark_brown_text"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:id="@+id/sectionB"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Q1 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="스트레스 받을 때 어떤 음식이 당기나요?"
+                android:textColor="@color/dark_brown_text"
+                android:layout_marginBottom="8dp"/>
+            <RadioGroup
+                android:id="@+id/rgStress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="단 음식"
+                    android:tag="sweet"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="매운 음식"
+                    android:tag="spicy"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="따뜻한 국물"
+                    android:tag="warm_soup"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="특별히 없음"
+                    android:tag="none"/>
+            </RadioGroup>
+
+            <!-- Q2 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="기분이 좋을 때 무엇이 먹고 싶나요?"
+                android:textColor="@color/dark_brown_text"
+                android:layout_marginBottom="8dp"/>
+            <RadioGroup
+                android:id="@+id/rgGoodMood"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="가벼운 음식"
+                    android:tag="light"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="자극적/풍미 강한 음식"
+                    android:tag="savory"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="든든한 한 끼"
+                    android:tag="hearty"/>
+            </RadioGroup>
+
+            <!-- Q3 -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="외로울 때 자주 찾는 음식이 있나요?"
+                android:textColor="@color/dark_brown_text"
+                android:layout_marginBottom="8dp"/>
+            <RadioGroup
+                android:id="@+id/rgLonely"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp">
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="나눠먹기 좋은 음식(치킨/피자)"
+                    android:tag="shareable"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="위로가 되는 음식(죽/수프/달달한 간식)"
+                    android:tag="comfort"/>
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="없음"
+                    android:tag="none"/>
+            </RadioGroup>
+
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveB"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="저장"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textColor="@color/dark_brown_text"
+            android:backgroundTint="#FFD700"
+            app:cornerRadius="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="12dp"/>
+
+    </LinearLayout>
+</ScrollView>

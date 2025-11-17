@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF6E3"
+    android:gravity="center"
+    android:padding="24dp"
+    tools:context=".EmotionActivity"
+    tools:theme="@style/Theme.MyApplication">
+
+    <!-- 뒤로가기 버튼 -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="start"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="뒤로 가기"
+        android:padding="12dp"
+        android:src="@drawable/ic_arrow_back"
+        android:tint="#8B5A2B"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- 질문 카운터 -->
+    <TextView
+        android:id="@+id/textQuestionCounter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="1/5"
+        android:textColor="#8B5A2B"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="24dp"/>
+
+    <!-- 상단 이모티콘 이미지 (단일) -->
+    <ImageView
+        android:id="@+id/imageTopEgg"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/egg"
+        android:contentDescription="App icon"
+        android:layout_marginBottom="24dp" />
+
+    <!-- 질문 텍스트 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textQuestion"
+        android:text="오늘 하루 중 가장 기억에 남는 일"
+        android:textSize="20sp"
+        android:textColor="#814C05"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="36dp" />
+
+    <!-- 결과 타이틀 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textResultTitle"
+        android:text="님을 위한 음식이에요 😊"
+        android:textSize="20sp"
+        android:textColor="#814C05"
+        android:textAlignment="center"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="36dp"
+        android:visibility="gone" />
+
+    <!-- 5점 선택 버튼 -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnVeryNo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="매우 아니다"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="#814C05"
+        android:insetTop="10dp"
+        android:insetBottom="10dp"
+        app:cornerRadius="20dp"
+        android:backgroundTint="#F5E2C8"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnNo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="아니다"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="#814C05"
+        android:insetTop="10dp"
+        android:insetBottom="10dp"
+        app:cornerRadius="20dp"
+        android:backgroundTint="#EED9BB"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnMid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="보통"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="#814C05"
+        android:insetTop="10dp"
+        android:insetBottom="10dp"
+        app:cornerRadius="20dp"
+        android:backgroundTint="#EADCC1"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnYes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="그렇다"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:insetTop="10dp"
+        android:insetBottom="10dp"
+        app:cornerRadius="20dp"
+        android:backgroundTint="#E08E54"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnVeryYes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="매우 그렇다"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="#814C05"
+        android:insetTop="10dp"
+        android:insetBottom="10dp"
+        app:cornerRadius="20dp"
+        android:backgroundTint="#FFD966"/>
+
+    <!-- 로딩 표시 -->
+    <ProgressBar
+        android:id="@+id/progress"
+        style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:visibility="gone" />
+
+    <!-- 감정 결과 텍스트 -->
+    <TextView
+        android:id="@+id/textEmotionResult"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:textColor="#814C05"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <!-- 추천 음식 리스트 -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerFoods"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_weight="1" />
+
+    <!-- 다른 음식 보기 버튼 (결과 화면 하단) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnMore"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="다른음식"
+        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="#5D4037"
+        app:cornerRadius="16dp"
+        android:backgroundTint="#FFD700"
+        android:visibility="gone" />
+</LinearLayout>
