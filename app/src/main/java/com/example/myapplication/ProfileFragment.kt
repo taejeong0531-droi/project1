@@ -54,10 +54,10 @@ class ProfileFragment : Fragment() {
             startActivity(Intent(requireContext(), FoodPreferenceActivity::class.java))
         }
 
-        // 설문조사(감정-음식 경험) 화면 진입
-        val layoutEmotionPattern: View = view.findViewById(R.id.layoutEmotionPattern)
-        layoutEmotionPattern.setOnClickListener {
-            startActivity(Intent(requireContext(), EmotionExperienceActivity::class.java))
+        // 고객센터 화면 진입
+        val layoutSupport: View = view.findViewById(R.id.layoutSupport)
+        layoutSupport.setOnClickListener {
+            startActivity(Intent(requireContext(), SupportActivity::class.java))
         }
 
         // onResume에서 최신 사용자 정보 반영

@@ -51,9 +51,11 @@
             android:exported="false"
             android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
 
-        <!-- 감정-음식 경험 설문 액티비티 -->
+        
+
+        <!-- 고객센터 액티비티 -->
         <activity
-            android:name=".EmotionExperienceActivity"
+            android:name=".SupportActivity"
             android:exported="false"
             android:theme="@style/Theme.MaterialComponents.Light.NoActionBar" />
 
