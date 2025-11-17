@@ -18,6 +18,7 @@ import com.example.myapplication.data.EmotionRepository
 import com.example.myapplication.data.FoodSelection
 import com.example.myapplication.network.ApiClient
 import com.example.myapplication.network.model.RecommendRequest
+import com.example.myapplication.network.model.PreferencesReq
 import com.example.myapplication.ui.EmotionViewModel
 import com.example.myapplication.util.UserIdProvider
 import com.google.firebase.auth.ktx.auth
@@ -195,9 +196,15 @@ class EmotionActivity : AppCompatActivity() {
                   ApiClient.api.recommend(
                       authHeader,
                       RecommendRequest(
-                          mood = emotionLabel,
-                          preferences = loadSelectedTags(),
-                          top_k = 4
+                          user_id = userId,
+                          text = emotionLabel,
+                          weather = null,
+                          recent_logs = null,
+                          preferences = PreferencesReq(
+                              likes = loadSelectedTags(),
+                              dislikes = null,
+                              sensitive_spicy = null
+                          )
                       )
                   )
               } catch (e: Exception) {
@@ -206,13 +213,13 @@ class EmotionActivity : AppCompatActivity() {
           }
 
           var foods: List<FoodItem> = if (response != null) {
-              response.items.map { item ->
+              response.top3.map { fs ->
                   FoodItem(
-                      id = item.name, // 간단히 이름을 ID로 사용
-                      name = item.name,
+                      id = fs.food,
+                      name = fs.food,
                       imageUrl = null,
-                      calories = item.kcal,
-                      tags = item.tags
+                      calories = null,
+                      tags = emptyList()
                   )
               }
           } else {
@@ -310,9 +317,15 @@ class EmotionActivity : AppCompatActivity() {
                     ApiClient.api.recommend(
                         authHeader,
                         RecommendRequest(
-                            mood = when (label) { "happy", "angry", "neutral" -> label else -> "neutral" },
-                            preferences = loadSelectedTags(),
-                            top_k = 4
+                            user_id = userId,
+                            text = when (label) { "happy", "angry", "neutral" -> label else -> "neutral" },
+                            weather = null,
+                            recent_logs = null,
+                            preferences = PreferencesReq(
+                                likes = loadSelectedTags(),
+                                dislikes = null,
+                                sensitive_spicy = null
+                            )
                         )
                     )
                 } catch (e: Exception) {
@@ -321,13 +334,13 @@ class EmotionActivity : AppCompatActivity() {
             }
 
             var foods: List<FoodItem> = if (response != null) {
-                response.items.map { item ->
+                response.top3.map { fs ->
                     FoodItem(
-                        id = item.name,
-                        name = item.name,
+                        id = fs.food,
+                        name = fs.food,
                         imageUrl = null,
-                        calories = item.kcal,
-                        tags = item.tags
+                        calories = null,
+                        tags = emptyList()
                     )
                 }
             } else {

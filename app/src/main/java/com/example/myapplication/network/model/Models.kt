@@ -3,20 +3,44 @@ package com.example.myapplication.network.model
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class RecommendRequest(
-    val mood: String? = null,
-    val preferences: List<String>? = null,
-    val top_k: Int = 5
+data class WeatherReq(
+    val temp_c: Double? = null,
+    val status: String? = null,
+    val lat: Double? = null,
+    val lon: Double? = null
 )
 
 @JsonClass(generateAdapter = true)
-data class FoodItem(
-    val name: String,
-    val kcal: Int? = null,
-    val tags: List<String> = emptyList()
+data class PreferencesReq(
+    val likes: List<String>? = null,
+    val dislikes: List<String>? = null,
+    val sensitive_spicy: Boolean? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class RecentLogReq(
+    val food: String,
+    val timestamp: String
+)
+
+@JsonClass(generateAdapter = true)
+data class RecommendRequest(
+    val user_id: String,
+    val text: String,
+    val weather: WeatherReq? = null,
+    val recent_logs: List<RecentLogReq>? = null,
+    val preferences: PreferencesReq? = null
+)
+
+@JsonClass(generateAdapter = true)
+data class FoodScore(
+    val food: String,
+    val score: Double
 )
 
 @JsonClass(generateAdapter = true)
 data class RecommendResponse(
-    val items: List<FoodItem>
+    val emotion: String,
+    val score: Double? = null,
+    val top3: List<FoodScore>
 )
