@@ -1,0 +1,23 @@
+import os
+from typing import Dict, Any, Optional
+import requests
+
+
+def fetch_weather_by_latlon(lat: float, lon: float, api_key: Optional[str] = None) -> Dict[str, Any]:
+    api_key = api_key or os.getenv('OPENWEATHER_API_KEY')
+    if not api_key:
+        raise RuntimeError('OPENWEATHER_API_KEY not set')
+    url = 'https://api.openweathermap.org/data/2.5/weather'
+    params = {
+        'lat': lat,
+        'lon': lon,
+        'appid': api_key,
+        'units': 'metric'
+    }
+    r = requests.get(url, params=params, timeout=10)
+    r.raise_for_status()
+    data = r.json()
+    temp_c = data['main']['temp']
+    cond = data['weather'][0]['main'].lower()  # 'rain' | 'snow' | 'clear' | ...
+    status = 'rain' if 'rain' in cond else ('snow' if 'snow' in cond else ('clear' if 'clear' in cond else 'mild'))
+    return {'temp_c': float(temp_c), 'status': status}
