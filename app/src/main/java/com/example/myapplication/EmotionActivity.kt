@@ -26,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import com.google.android.gms.tasks.Tasks
 
 class EmotionActivity : AppCompatActivity() {
     private val emotionViewModel: EmotionViewModel by viewModels()
@@ -155,6 +156,16 @@ class EmotionActivity : AppCompatActivity() {
         btnVeryYes.isEnabled = !loading
     }
 
+    private fun fetchIdToken(): String? {
+        val user = Firebase.auth.currentUser ?: return null
+        return try {
+            val result = Tasks.await(user.getIdToken(false))
+            result?.token
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun analyzeWithEmotion(label: String) {
       setLoading(true)
 
@@ -179,7 +190,10 @@ class EmotionActivity : AppCompatActivity() {
       lifecycleScope.launch {
           val response = withContext(Dispatchers.IO) {
               try {
+                  val token = fetchIdToken()
+                  val authHeader = token?.let { "Bearer $it" }
                   ApiClient.api.recommend(
+                      authHeader,
                       RecommendRequest(
                           mood = emotionLabel,
                           preferences = loadSelectedTags(),
@@ -291,7 +305,10 @@ class EmotionActivity : AppCompatActivity() {
             setLoading(true)
             val response = withContext(Dispatchers.IO) {
                 try {
+                    val token = fetchIdToken()
+                    val authHeader = token?.let { "Bearer $it" }
                     ApiClient.api.recommend(
+                        authHeader,
                         RecommendRequest(
                             mood = when (label) { "happy", "angry", "neutral" -> label else -> "neutral" },
                             preferences = loadSelectedTags(),

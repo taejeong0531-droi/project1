@@ -4,6 +4,7 @@ import com.example.myapplication.network.model.RecommendRequest
 import com.example.myapplication.network.model.RecommendResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface ApiService {
@@ -11,5 +12,8 @@ interface ApiService {
     suspend fun health(): Map<String, String>
 
     @POST("/recommend")
-    suspend fun recommend(@Body req: RecommendRequest): RecommendResponse
+    suspend fun recommend(
+        @Header("Authorization") authorization: String?,
+        @Body req: RecommendRequest
+    ): RecommendResponse
 }
