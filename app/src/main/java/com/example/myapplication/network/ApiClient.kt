@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
     // TODO: For device testing replace with your LAN IP, e.g., http://192.168.0.10:8000/
-    private const val BASE_URL = "http://10.0.2.2:8000/" // Android emulator -> host machine
+    private const val BASE_URL = "http://10.0.2.2:8080/" // Android emulator -> backend on host (port 8080)
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
