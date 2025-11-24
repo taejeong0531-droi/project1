@@ -7,14 +7,19 @@ import android.view.ViewGroup
 import android.widget.CalendarView
 import android.widget.TextView
 import android.widget.Toast
+import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.data.AppDatabase
 import com.example.myapplication.data.EmotionRepository
+import com.example.myapplication.util.UserIdProvider
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
@@ -30,6 +35,9 @@ class HistoryFragment : Fragment() {
     private lateinit var repository: EmotionRepository
     
     private var selectedDateEpochDay: Long = LocalDate.now().toEpochDay()
+    private lateinit var userId: String
+    private var entriesJob: Job? = null
+    private var authListener: ((com.google.firebase.auth.FirebaseAuth) -> Unit)? = null
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -57,10 +65,14 @@ class HistoryFragment : Fragment() {
         recyclerHistory.layoutManager = LinearLayoutManager(requireContext())
         recyclerHistory.adapter = adapter
         
+        // Resolve user id (prefer Firebase UID, fallback to per-installation id)
+        userId = resolveUserId()
+        Log.d("HistoryFragment", "Resolved userId onViewCreated: $userId")
+        
         // 오늘 날짜로 초기화
         viewLifecycleOwner.lifecycleScope.launch {
             // 과거 자동저장 잔재 정리
-            repository.cleanupEntriesWithoutSelection()
+            repository.cleanupEntriesWithoutSelection(userId)
             updateSelectedDate(selectedDateEpochDay)
         }
         
@@ -69,10 +81,41 @@ class HistoryFragment : Fragment() {
             val selectedDate = LocalDate.of(year, month + 1, dayOfMonth)
             selectedDateEpochDay = selectedDate.toEpochDay()
             viewLifecycleOwner.lifecycleScope.launch {
-                repository.cleanupEntriesWithoutSelection()
+                repository.cleanupEntriesWithoutSelection(userId)
                 updateSelectedDate(selectedDateEpochDay)
             }
         }
+
+        // Prepare auth listener
+        authListener = { _ ->
+            val newId = resolveUserId()
+            if (newId != userId) {
+                userId = newId
+                Log.d("HistoryFragment", "Auth changed. New userId: $userId")
+                // reload for new user
+                entriesJob?.cancel()
+                viewLifecycleOwner.lifecycleScope.launch {
+                    repository.cleanupEntriesWithoutSelection(userId)
+                    updateSelectedDate(selectedDateEpochDay)
+                }
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        authListener?.let { Firebase.auth.addAuthStateListener(it) }
+        // Auto-refresh when returning to this screen
+        viewLifecycleOwner.lifecycleScope.launch {
+            repository.cleanupEntriesWithoutSelection(userId)
+            updateSelectedDate(selectedDateEpochDay)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        authListener?.let { Firebase.auth.removeAuthStateListener(it) }
+        entriesJob?.cancel()
     }
     
     private fun updateSelectedDate(dateEpochDay: Long) {
@@ -85,8 +128,9 @@ class HistoryFragment : Fragment() {
     }
     
     private fun loadEntriesForDate(dateEpochDay: Long) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            repository.getEntriesByDate(dateEpochDay).collectLatest { entries ->
+        entriesJob?.cancel()
+        entriesJob = viewLifecycleOwner.lifecycleScope.launch {
+            repository.getEntriesByDate(dateEpochDay, userId).collectLatest { entries ->
                 if (entries.isEmpty()) {
                     recyclerHistory.visibility = View.GONE
                     textEmptyState.visibility = View.VISIBLE
@@ -137,5 +181,10 @@ class HistoryFragment : Fragment() {
         """.trimIndent()
         
         Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+    }
+
+    private fun resolveUserId(): String {
+        val uid = Firebase.auth.currentUser?.uid
+        return uid ?: UserIdProvider.getOrCreate(requireContext())
     }
 }

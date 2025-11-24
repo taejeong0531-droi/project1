@@ -1,6 +1,7 @@
 import os
 import datetime
 from typing import Dict, Any, List, Optional
+import asyncio
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, HTTPException, Header
@@ -48,18 +49,37 @@ def health():
 
 
 @app.post("/recommend", response_model=RecommendResponse)
-def recommend(body: RecommendRequest, uid: Optional[str] = Depends(get_uid)):
+async def recommend(body: RecommendRequest, uid: Optional[str] = Depends(get_uid)):
     # uid가 없는 경우는 get_uid에서 dev-local-user 로 대체되므로 여기서는 별도 401을 발생시키지 않는다.
 
     # user_id 일치성 체크(선택)
-    if body.user_id and body.user_id != uid:
-        raise HTTPException(status_code=403, detail="Forbidden: user mismatch")
+    # 개발 편의를 위해 서버가 dev-local-user 모드일 때는 불일치를 허용한다.
+    if uid and uid != "dev-local-user":
+        if body.user_id and body.user_id != uid:
+            raise HTTPException(status_code=403, detail="Forbidden: user mismatch")
 
-    # 1) Firestore에서 데이터 가져오기(있으면 사용)
-    emotion_food_map_fs = fs.load_emotion_food_map()  # 추천 후보 커스텀화 가능(현재 recommender 내부 기본도 존재)
-    user_profile_fs = fs.load_user_profile(uid)
-    user_prefs_fs = fs.load_user_preferences(uid)
-    user_logs_fs = fs.load_user_recent_logs(uid)
+    # 1) Firestore에서 데이터 가져오기(있으면 사용) + 섹션 타이밍/타임아웃
+    t_fs_start = datetime.datetime.now()
+    emotion_food_map_task = asyncio.to_thread(fs.load_emotion_food_map)
+    user_profile_task = asyncio.to_thread(fs.load_user_profile, uid)
+    user_prefs_task = asyncio.to_thread(fs.load_user_preferences, uid)
+    user_logs_task = asyncio.to_thread(fs.load_user_recent_logs, uid)
+
+    async def _with_timeout(task, default, timeout_s: float):
+        try:
+            return await asyncio.wait_for(task, timeout=timeout_s)
+        except Exception:
+            return default
+
+    emotion_food_map_fs = await _with_timeout(emotion_food_map_task, {}, 2.0)
+    user_profile_fs = await _with_timeout(user_profile_task, {}, 2.0)
+    user_prefs_fs = await _with_timeout(user_prefs_task, {}, 2.0)
+    user_logs_fs = await _with_timeout(user_logs_task, [], 2.0)
+    t_fs_end = datetime.datetime.now()
+    try:
+        print(f"[perf] firestore total ms={(t_fs_end - t_fs_start).total_seconds()*1000:.1f}")
+    except Exception:
+        pass
 
     # 2) 요청 본문 데이터와 병합
     # preferences 병합
@@ -116,14 +136,12 @@ def recommend(body: RecommendRequest, uid: Optional[str] = Depends(get_uid)):
     weather: Dict[str, Any] = {}
     if body.weather and (body.weather.temp_c is not None or body.weather.status):
         weather = {'temp_c': body.weather.temp_c, 'status': body.weather.status}
-    elif body.weather and body.weather.lat is not None and body.weather.lon is not None:
-        # 서버에서 OpenWeatherMap 호출
-        weather = fetch_weather_by_latlon(body.weather.lat, body.weather.lon)
     else:
-        # 기본값
+        # 서버 측 날씨 API 비활성화: 항상 기본값 사용
         weather = {'temp_c': 20.0, 'status': 'mild'}
 
     # 4) 추천 실행
+    t_rec_start = datetime.datetime.now()
     provided = None
     if getattr(body, 'emotion_label', None):
         provided = {'emotion': body.emotion_label, 'score': body.score_intensity or 0.9}
@@ -145,12 +163,17 @@ def recommend(body: RecommendRequest, uid: Optional[str] = Depends(get_uid)):
         emotion_vector=ev,
         intensity=body.score_intensity,
     )
+    t_rec_end = datetime.datetime.now()
+    try:
+        print(f"[perf] recommend_final ms={(t_rec_end - t_rec_start).total_seconds()*1000:.1f}")
+    except Exception:
+        pass
 
     # 5) 응답 포맷
     return RecommendResponse(
         emotion=result['emotion'],
         score=None,
-        top3=[FoodScore(**it) for it in result['top3']]
+        items=[FoodScore(**it) for it in result['top3']]
     )
 
 

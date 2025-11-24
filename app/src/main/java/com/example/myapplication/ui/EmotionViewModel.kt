@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.FirestoreEmotionRepository
 import com.example.myapplication.model.EmotionRecord
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -15,9 +16,11 @@ class EmotionViewModel(
 
     private val _emotions = MutableStateFlow<List<EmotionRecord>>(emptyList())
     val emotions: StateFlow<List<EmotionRecord>> = _emotions
+    private var observeJob: Job? = null
 
     fun startObserving(userId: String) {
-        viewModelScope.launch {
+        observeJob?.cancel()
+        observeJob = viewModelScope.launch {
             repo.observeEmotions(userId).collectLatest { list ->
                 _emotions.value = list
             }

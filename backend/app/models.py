@@ -30,7 +30,7 @@ class EmotionVector(BaseModel):
 
 class RecommendRequest(BaseModel):
     user_id: str
-    text: str
+    text: Optional[str] = None
     weather: Optional[WeatherReq] = None
     recent_logs: Optional[List[RecentLogReq]] = None
     preferences: Optional[PreferencesReq] = None
@@ -48,4 +48,4 @@ class FoodScore(BaseModel):
 class RecommendResponse(BaseModel):
     emotion: str
     score: Optional[float] = None
-    top3: List[FoodScore]
+    items: List[FoodScore]

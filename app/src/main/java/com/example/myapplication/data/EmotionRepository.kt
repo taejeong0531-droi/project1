@@ -9,21 +9,21 @@ class EmotionRepository(private val dao: EmotionDao) {
         dao.insertEntryWithFoods(entry, foods)
     }
     
-    suspend fun cleanupEntriesWithoutSelection() {
-        dao.deleteEntriesWithoutSelectedFood()
+    suspend fun cleanupEntriesWithoutSelection(userId: String) {
+        dao.deleteEntriesWithoutSelectedFood(userId)
     }
     
-    fun getEntriesByDate(dateEpochDay: Long): Flow<List<EmotionEntry>> {
-        return dao.getEntriesByDate(dateEpochDay)
+    fun getEntriesByDate(dateEpochDay: Long, userId: String): Flow<List<EmotionEntry>> {
+        return dao.getEntriesByDate(dateEpochDay, userId)
     }
     
-    fun getEntriesBetween(startEpochDay: Long, endEpochDay: Long): Flow<List<EmotionEntry>> {
-        return dao.getEntriesBetween(startEpochDay, endEpochDay)
+    fun getEntriesBetween(startEpochDay: Long, endEpochDay: Long, userId: String): Flow<List<EmotionEntry>> {
+        return dao.getEntriesBetween(startEpochDay, endEpochDay, userId)
     }
 
     suspend fun getFoodsByEntry(entryId: Long): List<FoodSelection> {
         return dao.getFoodsByEntry(entryId)
     }
 
-    fun getAllEntriesRecent(): Flow<List<EmotionEntry>> = dao.getAllEntriesRecent()
+    fun getAllEntriesRecent(userId: String): Flow<List<EmotionEntry>> = dao.getAllEntriesRecent(userId)
 }

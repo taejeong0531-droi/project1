@@ -7,6 +7,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -94,11 +95,12 @@ class EmotionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_emotion)
 
-        // Per-installation userId (no Auth)
-        userId = UserIdProvider.getOrCreate(this)
+        // Resolve user id (prefer Firebase UID, fallback to per-installation id)
+        userId = resolveUserId()
 
         // Start Firestore real-time observation (optional UI usage)
         emotionViewModel.startObserving(userId)
+        Log.d("EmotionActivity", "Resolved userId onCreate: $userId")
 
         // View refs
         btnVeryNo = findViewById(R.id.btnVeryNo)
@@ -141,6 +143,16 @@ class EmotionActivity : AppCompatActivity() {
         btnVeryYes.setOnClickListener { onAnswerScore(+2) }
         btnMore.setOnClickListener { showOtherFoods() }
         btnBack.setOnClickListener { goBackOneStep() }
+
+        // Prepare auth listener to react to account changes while screen is on
+        authListener = { _ ->
+            val newId = resolveUserId()
+            if (newId != userId) {
+                userId = newId
+                Log.d("EmotionActivity", "Auth changed. New userId: $userId")
+                emotionViewModel.startObserving(userId)
+            }
+        }
     }
     private var lastEmotionLabel: String? = null
     private var lastScore: Float = 0.9f
@@ -148,6 +160,8 @@ class EmotionActivity : AppCompatActivity() {
     private var altIndex: Int = 0
     private var savedOnce: Boolean = false
     private var selectionCommitted: Boolean = false
+    private var authListener: ((com.google.firebase.auth.FirebaseAuth) -> Unit)? = null
+    private var forceNoAuthTest: Boolean = true
 
     private fun setLoading(loading: Boolean) {
         progress.visibility = if (loading) View.VISIBLE else View.GONE
@@ -192,10 +206,14 @@ class EmotionActivity : AppCompatActivity() {
       lifecycleScope.launch {
           val response = withContext(Dispatchers.IO) {
               try {
-                  val token = fetchIdToken()
+                  // health pre-check: if backend is unavailable, skip recommend
+                  val healthy = try { ApiClient.api.health(); true } catch (e: Exception) { false }
+                  if (!healthy) return@withContext null
+                  val token = if (forceNoAuthTest) null else fetchIdToken()
                   val authHeader = token?.let { "Bearer $it" }
-                  val uidForApi = Firebase.auth.currentUser?.uid ?: "dev-local-user"
-                  ApiClient.api.recommend(
+                  val uidForApi = if (forceNoAuthTest) "dev-local-user" else (Firebase.auth.currentUser?.uid ?: "dev-local-user")
+                  Log.d("EmotionActivity", "recommend authHeaderPresent=${authHeader != null} uidForApi=$uidForApi")
+                  val resp = ApiClient.api.recommend(
                       authHeader,
                       RecommendRequest(
                           user_id = uidForApi,
@@ -218,14 +236,21 @@ class EmotionActivity : AppCompatActivity() {
                           )
                       )
                   )
+                  Log.d("EmotionActivity", "recommend status=${resp.code()} success=${resp.isSuccessful}")
+                  if (!resp.isSuccessful) {
+                      val err = try { resp.errorBody()?.string() } catch (e: Exception) { null }
+                      Log.e("EmotionActivity", "recommend error body=${err}")
+                  }
+                  resp
               } catch (e: Exception) {
+                  Log.e("EmotionActivity", "recommend exception", e)
                   null
               }
           }
 
-          val fromApi = response != null
+          val fromApi = response?.isSuccessful == true && response.body() != null
           var foods: List<FoodItem> = if (fromApi) {
-              response!!.top3.map { fs ->
+              response!!.body()!!.items.map { fs ->
                   FoodItem(
                       id = fs.food,
                       name = fs.food,
@@ -235,6 +260,7 @@ class EmotionActivity : AppCompatActivity() {
                   )
               }
           } else {
+              android.widget.Toast.makeText(this@EmotionActivity, "네트워크 문제로 기본 추천을 보여드려요", android.widget.Toast.LENGTH_SHORT).show()
               getFoodsFor(emotionLabel, altIndex)
           }
 
@@ -321,10 +347,14 @@ class EmotionActivity : AppCompatActivity() {
             setLoading(true)
             val response = withContext(Dispatchers.IO) {
                 try {
-                    val token = fetchIdToken()
+                    // health pre-check
+                    val healthy = try { ApiClient.api.health(); true } catch (e: Exception) { false }
+                    if (!healthy) return@withContext null
+                    val token = if (forceNoAuthTest) null else fetchIdToken()
                     val authHeader = token?.let { "Bearer $it" }
-                    val uidForApi = Firebase.auth.currentUser?.uid ?: "dev-local-user"
-                    ApiClient.api.recommend(
+                    val uidForApi = if (forceNoAuthTest) "dev-local-user" else (Firebase.auth.currentUser?.uid ?: "dev-local-user")
+                    Log.d("EmotionActivity", "recommend(more) authHeaderPresent=${authHeader != null} uidForApi=$uidForApi")
+                    val resp = ApiClient.api.recommend(
                         authHeader,
                         RecommendRequest(
                             user_id = uidForApi,
@@ -347,14 +377,21 @@ class EmotionActivity : AppCompatActivity() {
                             )
                         )
                     )
+                    Log.d("EmotionActivity", "recommend(more) status=${resp.code()} success=${resp.isSuccessful}")
+                    if (!resp.isSuccessful) {
+                        val err = try { resp.errorBody()?.string() } catch (e: Exception) { null }
+                        Log.e("EmotionActivity", "recommend(more) error body=${err}")
+                    }
+                    resp
                 } catch (e: Exception) {
+                    Log.e("EmotionActivity", "recommend(more) exception", e)
                     null
                 }
             }
 
-            val fromApi = response != null
+            val fromApi = response?.isSuccessful == true && response.body() != null
             var foods: List<FoodItem> = if (fromApi) {
-                response!!.top3.map { fs ->
+                response!!.body()!!.items.map { fs ->
                     FoodItem(
                         id = fs.food,
                         name = fs.food,
@@ -364,6 +401,7 @@ class EmotionActivity : AppCompatActivity() {
                     )
                 }
             } else {
+                android.widget.Toast.makeText(this@EmotionActivity, "네트워크 문제로 기본 추천을 보여드려요", android.widget.Toast.LENGTH_SHORT).show()
                 altIndex += 1
                 getFoodsFor(
                     when (label) { "happy", "angry", "neutral" -> label else -> "neutral" },
@@ -412,6 +450,11 @@ class EmotionActivity : AppCompatActivity() {
         return "사용자"
     }
 
+    private fun resolveUserId(): String {
+        val uid = Firebase.auth.currentUser?.uid
+        return uid ?: UserIdProvider.getOrCreate(this)
+    }
+
     private fun goBackOneStep() {
         // 결과 화면 상태라면 설문 마지막 문항으로 되돌림
         if (textResultTitle.visibility == View.VISIBLE || currentIndex >= selectedQA.size) {
@@ -432,6 +475,16 @@ class EmotionActivity : AppCompatActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
         goBackOneStep()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        authListener?.let { Firebase.auth.addAuthStateListener(it) }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        authListener?.let { Firebase.auth.removeAuthStateListener(it) }
     }
 
     private fun onAnswerScore(score: Int) {
@@ -506,6 +559,7 @@ class EmotionActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val today = LocalDate.now().toEpochDay()
             val entry = EmotionEntry(
+                userId = userId,
                 dateEpochDay = today,
                 emotion = emotionLabel,
                 score = lastScore
@@ -547,6 +601,7 @@ class EmotionActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val today = LocalDate.now().toEpochDay()
             val entry = EmotionEntry(
+                userId = userId,
                 dateEpochDay = today,
                 emotion = label,
                 score = score

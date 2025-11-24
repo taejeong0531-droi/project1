@@ -45,7 +45,7 @@ data class FoodScore(
 data class RecommendResponse(
     val emotion: String,
     val score: Double? = null,
-    val top3: List<FoodScore>
+    val items: List<FoodScore>
 )
 
 @JsonClass(generateAdapter = true)

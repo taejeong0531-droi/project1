@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class EmotionEntry(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val userId: String = "",
     val dateEpochDay: Long,  // LocalDate.toEpochDay()
     val emotion: String,     // happy, angry, neutral
     val score: Float,        // 0.0 ~ 1.0
