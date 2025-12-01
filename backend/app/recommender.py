@@ -61,9 +61,14 @@ def get_candidates_by_emotion(emotion: str, score: float, top_k: int = 5) -> Lis
             ext = translate_titles_via_papago(ext)
         except Exception:
             pass
+        import random
+        random.shuffle(ext)
         return ext[:top_k]
     # 2) Fallback to internal pool
     pool = emotion_food_map.get(emotion, emotion_food_map['neutral'])
+    import random
+    pool = pool.copy()
+    random.shuffle(pool)
     if score >= 0.8:
         return pool[:top_k]
     return pool
@@ -245,6 +250,13 @@ def personalized_score(
 
     # 7) 날씨
     score += weather_suitability(food, weather)
+
+    # 소량 난수 가산으로 동점 해소(다양성 확보)
+    try:
+        import random
+        score += random.uniform(-0.01, 0.01)
+    except Exception:
+        pass
 
     return round(float(score), 4)
 

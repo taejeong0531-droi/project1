@@ -20,6 +20,7 @@ import com.example.myapplication.data.FoodSelection
 import com.example.myapplication.network.ApiClient
 import com.example.myapplication.network.model.RecommendRequest
 import com.example.myapplication.network.model.PreferencesReq
+import com.example.myapplication.network.model.RecentLogReq
 import com.example.myapplication.network.model.EmotionVector
 import com.example.myapplication.ui.EmotionViewModel
 import com.example.myapplication.util.UserIdProvider
@@ -46,38 +47,54 @@ class EmotionActivity : AppCompatActivity() {
     private lateinit var textQuestionCounter: TextView
     private lateinit var textResultTitle: TextView
     private lateinit var textEmotionResult: TextView
+    private lateinit var explanationBox: View
     private lateinit var imageTopEgg: ImageView
     private lateinit var recyclerFoods: RecyclerView
     private lateinit var adapter: EmotionAdapter
     private lateinit var repository: EmotionRepository
     
-    // 5문항 진행 상태 (카테고리별 질문 풀에서 랜덤 1개씩 선택)
+    // 설문: 카테고리별 질문 풀에서 랜덤 2개씩 선택(총 10문항)
     private data class QA(val category: String, val text: String)
     private val categories: Map<String, List<String>> = mapOf(
         "기쁨-슬픔" to listOf(
             "오늘 하루 기분은 대체로 밝은 편인가요?",
-            "최근에 웃을 일이 있었나요?",
-            "요즘 마음이 무겁게 느껴지나요?" // 부정 문장(반전 필요)
+            "최근에 사소한 일에도 미소가 지어졌나요?",
+            "최근 3일 내 즐거웠던 순간이 떠오르나요?",
+            "요즘 마음이 무겁거나 우울하게 느껴지나요?", // 부정
+            "최근 눈물이 날 만큼 속상했던 적이 있었나요?", // 부정
+            "아침에 일어났을 때 기분이 가벼웠나요?"
         ),
         "피로-활력" to listOf(
             "몸이 피곤하거나 기운이 빠진 느낌이 있나요?", // 부정(피로)
-            "오늘은 새로운 일을 시작할 에너지가 있나요?",
-            "쉬고 싶다는 생각이 자주 드나요?" // 부정(피로)
+            "지난밤 수면이 충분했다고 느끼나요?",
+            "가벼운 운동을 할 에너지가 있나요?",
+            "하루 종일 축 늘어진 느낌이 있었나요?", // 부정
+            "커피나 에너지 드링크 없이도 버틸 수 있었나요?",
+            "쉬고 싶다는 생각이 자주 들었나요?" // 부정
         ),
         "외로움-안정감" to listOf(
             "요즘 혼자 있는 시간이 외롭다고 느껴지나요?", // 부정(외로움)
-            "누군가와 함께 시간을 보내고 싶나요?", // 부정(외로움)
-            "지금의 나 자신이 꽤 안정되어 있다고 느끼나요?"
+            "오늘 누군가와 대화를 나누며 위안을 받았나요?",
+            "주변 사람들과의 관계가 안정적이라고 느끼나요?",
+            "누군가에게 기대고 싶다는 생각이 들었나요?", // 부정
+            "스스로를 편안히 돌볼 시간이 있었나요?",
+            "혼자 있으면 마음이 허전하게 느껴지나요?" // 부정
         ),
         "스트레스-여유" to listOf(
             "요즘 일이나 공부 때문에 머리가 복잡한가요?", // 부정(스트레스)
-            "마음의 여유를 느끼고 있나요?",
-            "오늘 하루 스트레스를 받는 일이 있었나요?" // 부정(스트레스)
+            "오늘은 마음의 여유를 느낀 순간이 있었나요?",
+            "해결되지 않은 걱정이 머릿속을 떠나지 않았나요?", // 부정
+            "숨 고르기나 짧은 휴식을 일부러 했나요?",
+            "긴장으로 인해 몸이 뻣뻣하거나 두통이 있었나요?", // 부정
+            "일과 휴식의 균형이 잘 맞았다고 느끼나요?"
         ),
         "집중-산만" to listOf(
             "요즘 집중이 잘 되는 편인가요?",
-            "생각이 자꾸 다른 데로 새는 느낌이 있나요?", // 부정(산만)
-            "무언가에 몰입하는 시간이 있었나요?"
+            "해야 할 일에 몰입한 시간이 있었나요?",
+            "생각이 자꾸 다른 데로 새거나 멍해지는 순간이 많았나요?", // 부정
+            "스마트폰/알림 때문에 자주 흐트러졌나요?", // 부정
+            "일의 우선순위를 정하고 차근차근 진행했나요?",
+            "사소한 소음에도 쉽게 산만해졌나요?" // 부정
         )
     )
     private lateinit var selectedQA: List<QA>
@@ -90,6 +107,16 @@ class EmotionActivity : AppCompatActivity() {
         "calm" to 0,   // 여유(+)/스트레스(-)
         "focus" to 0   // 집중(+)/산만(-)
     )
+    // 카테고리 가중치(분석 민감도)
+    private val weights: Map<String, Float> = mapOf(
+        "joy" to 1.0f,
+        "energy" to 1.2f,
+        "social" to 1.0f,
+        "calm" to 1.2f,
+        "focus" to 0.8f
+    )
+    // 카테고리별 선택 문항 수(총 문항수 = 5 * 이 값)
+    private val QUESTIONS_PER_CATEGORY = 2
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,6 +142,7 @@ class EmotionActivity : AppCompatActivity() {
         textQuestionCounter = findViewById(R.id.textQuestionCounter)
         textResultTitle = findViewById(R.id.textResultTitle)
         textEmotionResult = findViewById(R.id.textEmotionResult)
+        explanationBox = findViewById(R.id.explanationBox)
         imageTopEgg = findViewById(R.id.imageTopEgg)
         recyclerFoods = findViewById(R.id.recyclerFoods)
 
@@ -127,10 +155,9 @@ class EmotionActivity : AppCompatActivity() {
         val database = AppDatabase.getDatabase(this)
         repository = EmotionRepository(database.emotionDao())
 
-        // 5개 카테고리에서 랜덤 1문항씩 선택
-        selectedQA = categories.map { (cat, list) ->
-            val q = list.random()
-            QA(cat, q)
+        // 카테고리별 랜덤 문항 선택
+        selectedQA = categories.flatMap { (cat, list) ->
+            list.shuffled().take(QUESTIONS_PER_CATEGORY).map { q -> QA(cat, q) }
         }
         // 첫 질문 표시
         updateQuestion()
@@ -252,11 +279,11 @@ class EmotionActivity : AppCompatActivity() {
           var foods: List<FoodItem> = if (fromApi) {
               response!!.body()!!.items.map { fs ->
                   FoodItem(
-                      id = fs.food,
-                      name = fs.food,
+                      id = fs.name,
+                      name = fs.name,
                       imageUrl = null,
-                      calories = null,
-                      tags = emptyList()
+                      calories = fs.kcal,
+                      tags = fs.tags
                   )
               }
           } else {
@@ -279,11 +306,14 @@ class EmotionActivity : AppCompatActivity() {
           textResultTitle.visibility = View.VISIBLE
           val nickname = getNickname()
           textResultTitle.text = "${nickname}님을 위한 음식이에요 😊"
-          // 감정 텍스트 숨김
-          textEmotionResult.visibility = View.GONE
+          // 결과 설명 표시
+          explanationBox.visibility = View.VISIBLE
+          textEmotionResult.visibility = View.VISIBLE
+          textEmotionResult.text = buildExplanation()
 
           // 리스트 표시
           adapter.submitList(foods)
+          recyclerFoods.visibility = View.VISIBLE
           btnMore.visibility = View.VISIBLE
 
           // 자동 저장 제거: 사용자가 실제로 음식을 선택할 때만 기록을 저장합니다.
@@ -369,7 +399,9 @@ class EmotionActivity : AppCompatActivity() {
                             ),
                             score_intensity = lastScore.toDouble(),
                             weather = null,
-                            recent_logs = null,
+                            recent_logs = lastRecommendedFoods.map { f ->
+                                RecentLogReq(food = f.name, timestamp = java.time.Instant.now().toString())
+                            },
                             preferences = PreferencesReq(
                                 likes = loadSelectedTags(),
                                 dislikes = null,
@@ -393,11 +425,11 @@ class EmotionActivity : AppCompatActivity() {
             var foods: List<FoodItem> = if (fromApi) {
                 response!!.body()!!.items.map { fs ->
                     FoodItem(
-                        id = fs.food,
-                        name = fs.food,
+                        id = fs.name,
+                        name = fs.name,
                         imageUrl = null,
-                        calories = null,
-                        tags = emptyList()
+                        calories = fs.kcal,
+                        tags = fs.tags
                     )
                 }
             } else {
@@ -417,6 +449,7 @@ class EmotionActivity : AppCompatActivity() {
 
             lastRecommendedFoods = foods
             adapter.submitList(foods)
+            recyclerFoods.visibility = View.VISIBLE
             setLoading(false)
         }
     }
@@ -432,6 +465,8 @@ class EmotionActivity : AppCompatActivity() {
         imageTopEgg.visibility = View.VISIBLE
         textResultTitle.visibility = View.GONE
         textEmotionResult.visibility = View.GONE
+        explanationBox.visibility = View.GONE
+        recyclerFoods.visibility = View.GONE
         btnVeryNo.visibility = View.VISIBLE
         btnNo.visibility = View.VISIBLE
         btnMid.visibility = View.VISIBLE
@@ -456,6 +491,13 @@ class EmotionActivity : AppCompatActivity() {
     }
 
     private fun goBackOneStep() {
+        explanationBox.visibility = View.GONE
+        textEmotionResult.visibility = View.GONE
+        textResultTitle.visibility = View.GONE
+        recyclerFoods.visibility = View.GONE
+        btnMore.visibility = View.GONE
+        adapter.submitList(emptyList())
+
         // 결과 화면 상태라면 설문 마지막 문항으로 되돌림
         if (textResultTitle.visibility == View.VISIBLE || currentIndex >= selectedQA.size) {
             currentIndex = (selectedQA.size - 1).coerceAtLeast(0)
@@ -473,7 +515,6 @@ class EmotionActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
         goBackOneStep()
     }
 
@@ -515,21 +556,42 @@ class EmotionActivity : AppCompatActivity() {
 
     private fun polarityFor(qa: QA): Int {
         val t = qa.text
-        val negativeKeywords = listOf("무겁", "피곤", "쉬고 싶", "외롭", "스트레스", "산만", "복잡", "새는")
+        val negativeKeywords = listOf(
+            "무겁", "우울", "눈물", "피곤", "축 늘어", "쉬고 싶", "외롭", "허전",
+            "스트레스", "긴장", "두통", "불안", "초조", "산만", "멍", "복잡", "새는",
+            "흐트러", "방해", "지치"
+        )
         val hasNeg = negativeKeywords.any { t.contains(it) }
         return if (hasNeg) -1 else +1
     }
 
     private fun decideMoodFromVector(): String {
-        val joy = vector["joy"] ?: 0
-        val energy = vector["energy"] ?: 0
-        val calm = vector["calm"] ?: 0
-        val focus = vector["focus"] ?: 0
+        val joy = (vector["joy"] ?: 0) * (weights["joy"] ?: 1f)
+        val energy = (vector["energy"] ?: 0) * (weights["energy"] ?: 1f)
+        val calm = (vector["calm"] ?: 0) * (weights["calm"] ?: 1f)
+        val focus = (vector["focus"] ?: 0) * (weights["focus"] ?: 1f)
         return when {
-            joy >= 2 && energy >= 1 -> "happy"
-            calm <= -1 || energy <= -2 -> "angry"
+            joy >= 2f && energy >= 1f -> "happy"
+            calm <= -1f || energy <= -2f -> "angry"
             else -> "neutral"
         }
+    }
+
+    private fun buildExplanation(): String {
+        val sb = StringBuilder()
+        val joy = (vector["joy"] ?: 0) * (weights["joy"] ?: 1f)
+        val energy = (vector["energy"] ?: 0) * (weights["energy"] ?: 1f)
+        val social = (vector["social"] ?: 0) * (weights["social"] ?: 1f)
+        val calm = (vector["calm"] ?: 0) * (weights["calm"] ?: 1f)
+        val focus = (vector["focus"] ?: 0) * (weights["focus"] ?: 1f)
+
+        if (energy <= -1f) sb.appendLine("에너지가 낮게 측정되어 따뜻한 국물/가벼운 메뉴를 우선합니다.")
+        if (calm <= -1f) sb.appendLine("스트레스/긴장이 감지되어 자극적인 음식은 낮게 평가했습니다.")
+        if (social <= -1f) sb.appendLine("외로움 지표로 따뜻한 국물/면요리를 소폭 가산했습니다.")
+        if (joy >= 2f) sb.appendLine("기쁨 지표로 가벼운 양식/면류에 소폭 가산했습니다.")
+        if (focus <= -1f) sb.appendLine("집중 저하로 아주 무거운 메뉴는 감점했습니다.")
+        if (sb.isEmpty()) sb.append("균형 잡힌 상태로 다양한 메뉴를 제안합니다.")
+        return sb.toString().trim()
     }
 
     private fun clearSurvey() {
@@ -542,6 +604,7 @@ class EmotionActivity : AppCompatActivity() {
         btnVeryYes.visibility = View.VISIBLE
         textQuestion.visibility = View.VISIBLE
         textResultTitle.visibility = View.GONE
+        explanationBox.visibility = View.GONE
         updateQuestion()
     }
 

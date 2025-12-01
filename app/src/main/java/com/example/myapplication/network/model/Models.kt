@@ -36,16 +36,17 @@ data class RecommendRequest(
 )
 
 @JsonClass(generateAdapter = true)
-data class FoodScore(
-    val food: String,
-    val score: Double
+data class ServerFoodItem(
+    val name: String,
+    val kcal: Int? = null,
+    val tags: List<String> = emptyList()
 )
 
 @JsonClass(generateAdapter = true)
 data class RecommendResponse(
     val emotion: String,
     val score: Double? = null,
-    val items: List<FoodScore>
+    val items: List<ServerFoodItem>
 )
 
 @JsonClass(generateAdapter = true)

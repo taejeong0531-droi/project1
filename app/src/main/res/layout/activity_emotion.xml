@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFF6E3"
-    android:gravity="center"
+    android:gravity="top"
     android:padding="24dp"
     tools:context=".EmotionActivity"
     tools:theme="@style/Theme.MyApplication">
@@ -42,6 +42,7 @@
         android:id="@+id/imageTopEgg"
         android:layout_width="48dp"
         android:layout_height="48dp"
+        android:layout_gravity="center"
         android:src="@drawable/egg"
         android:contentDescription="App icon"
         android:layout_marginBottom="24dp" />
@@ -153,24 +154,44 @@
         android:layout_marginTop="16dp"
         android:visibility="gone" />
 
-    <!-- 감정 결과 텍스트 -->
-    <TextView
-        android:id="@+id/textEmotionResult"
+    <!-- 설명문 박스(내부 스크롤), 검정 텍스트 -->
+    <LinearLayout
+        android:id="@+id/explanationBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:textColor="#814C05"
-        android:textStyle="bold"
-        android:textSize="18sp"
-        android:visibility="gone" />
+        android:layout_marginTop="12dp"
+        android:padding="12dp"
+        android:background="@drawable/bg_explain_box"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="true"
+            android:overScrollMode="ifContentScrolls"
+            android:scrollbarStyle="insideInset"
+            android:maxHeight="260dp">
+
+            <TextView
+                android:id="@+id/textEmotionResult"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#000000"
+                android:textSize="15sp"
+                android:minLines="3"
+                android:lineSpacingExtra="2dp"
+                android:textStyle="normal"/>
+        </ScrollView>
+    </LinearLayout>
 
     <!-- 추천 음식 리스트 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerFoods"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:layout_weight="1" />
+        android:nestedScrollingEnabled="false" />
 
     <!-- 다른 음식 보기 버튼 (결과 화면 하단) -->
     <com.google.android.material.button.MaterialButton
