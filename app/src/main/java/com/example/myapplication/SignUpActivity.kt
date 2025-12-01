@@ -67,14 +67,27 @@ class SignUpActivity : AppCompatActivity() {
                             val uid = task.result?.user?.uid
                             // Firestore에 사용자 문서(선택) 생성
                             uid?.let { id ->
+                                val db = Firebase.firestore
+                                val userRef = db.collection("users").document(id)
                                 val userDoc = mapOf(
                                     "nickname" to nickname,
                                     // username은 이메일로 고정 저장
                                     "username" to email,
                                     "email" to email
                                 )
-                                Firebase.firestore.collection("users").document(id)
-                                    .set(userDoc)
+                                // 루트 사용자 문서 생성
+                                userRef.set(userDoc)
+                                // 하위 프로필/선호 기본 문서 생성
+                                userRef.collection("profile").document("main")
+                                    .set(mapOf(
+                                        "sensitive_spicy" to false,
+                                        "createdAt" to com.google.firebase.Timestamp.now()
+                                    ))
+                                userRef.collection("preferences").document("main")
+                                    .set(mapOf(
+                                        "likes" to emptyList<String>(),
+                                        "dislikes" to emptyList<String>()
+                                    ))
                             }
 
                             Toast.makeText(this, "회원가입이 완료되었습니다.", Toast.LENGTH_SHORT).show()

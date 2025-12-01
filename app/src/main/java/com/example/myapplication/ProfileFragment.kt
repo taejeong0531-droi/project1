@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import android.content.Intent
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.ktx.firestore
 
 class ProfileFragment : Fragment() {
     override fun onCreateView(
@@ -25,14 +26,24 @@ class ProfileFragment : Fragment() {
         val tvUserEmail: TextView = view.findViewById(R.id.tvUserEmail)
         fun refreshUserUi() {
             val user = Firebase.auth.currentUser
-            val nickname = when {
+            val fallback = when {
                 !user?.displayName.isNullOrBlank() -> user!!.displayName!!
                 !user?.email.isNullOrBlank() -> user!!.email!!.substringBefore('@')
                 else -> "사용자"
             }
             val email = user?.email ?: ""
-            tvUserName.text = nickname
             tvUserEmail.text = email
+            tvUserName.text = fallback
+            val uid = user?.uid
+            if (!uid.isNullOrEmpty()) {
+                Firebase.firestore.collection("users").document(uid).get()
+                    .addOnSuccessListener { snap ->
+                        val nn = snap.getString("nickname")
+                        if (!nn.isNullOrBlank()) {
+                            tvUserName.text = nn
+                        }
+                    }
+            }
         }
         refreshUserUi()
 

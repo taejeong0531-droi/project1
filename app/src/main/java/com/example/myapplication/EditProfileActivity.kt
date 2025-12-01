@@ -8,6 +8,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 class EditProfileActivity : AppCompatActivity() {
@@ -111,7 +112,13 @@ class EditProfileActivity : AppCompatActivity() {
             .setDisplayName(trimmed)
             .build()
         user.updateProfile(request)
-            .addOnSuccessListener { onDone() }
+            .addOnSuccessListener {
+                // Also persist alias to Firestore users/{uid}.nickname
+                val uid = user.uid
+                Firebase.firestore.collection("users").document(uid)
+                    .set(mapOf("nickname" to trimmed), com.google.firebase.firestore.SetOptions.merge())
+                    .addOnCompleteListener { _ -> onDone() }
+            }
             .addOnFailureListener { e ->
                 Toast.makeText(this, "닉네임 변경 실패: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             }
